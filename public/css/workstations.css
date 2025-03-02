@@ -1,0 +1,115 @@
+
+body{
+  text-align: center;
+}
+a {
+  text-decoration: none;
+  color: black;
+}
+.w{
+  padding-left: 5px;
+  padding-right: 5px;
+  border-left: solid 1px;
+}
+.w:first-child {
+  border-left: none; 
+}
+.w:hover{
+  background-color: lightgray;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+  font-weight: bold;
+}
+hr{
+  width: 70%;
+}
+/* General link styling */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Menu styling */
+.menu, .log {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.menu a {
+  padding-left: 1%;
+  padding-right: 1%;
+}
+
+.menu a:not(:first-child) {
+  border-left: solid;
+}
+
+.menu a:hover {
+  padding-left: 2%;
+  padding-right: 2%;
+  cursor: pointer;
+  background-color: lightgrey;
+  font-weight: bold;
+}
+
+/* Highlight the "operators" link */
+.o {
+  background-color: #dddddd;
+}
+
+/* Horizontal rule styling */
+hr {
+  width: 70%;
+}
+
+/* Table styling */
+table {
+  font-family: Arial, sans-serif;
+  border-collapse: collapse;
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+th, td {
+  border-left: 1px solid black;
+  text-align: left;
+  padding: 8px;
+}
+
+/* Alternate row colors for better readability */
+tr:nth-child(odd) {
+  background-color: #dddddd;
+}
+#niew-post{
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  width: 70%;
+  background-color:lightgray;
+}
+#niew-post h3{
+padding-top: 20px;
+
+}
+
+
+.d_en_v:hover{
+cursor: pointer;
+font-weight:bold;
+/***text-align: center;
+*/
+}
+#bewerkform{
+  padding-bottom: 15px;
+}
+
+#logout{
+  margin-top: 20px;
+}
+#user_team{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}

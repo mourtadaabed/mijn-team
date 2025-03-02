@@ -1,0 +1,77 @@
+.o{
+background-color: #dddddd;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+#background{
+  width:70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align:center;
+}
+
+.r,.w,.o{
+  padding-left: 1%;
+  padding-right: 1%;
+}
+.r,.w{
+  border-left:solid;
+}
+table{
+font-family: arial, sans-serif;
+ border-collapse: collapse;
+ width: 70%;
+ margin-top: 15px;
+ margin-left: auto;
+ margin-right: auto;
+}
+td, th {
+  border: 1px solid black;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(odd) {
+  background-color: #dddddd;
+}
+.cell:hover{
+cursor: pointer;
+}
+#addingoperator_div{
+  margin-top: 10px;
+  padding-top:15px;
+  padding-bottom: 15px;
+  background-color: rgb(154, 194, 183);
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+#addingoperator_div h3{
+margin-top: 0;
+}
+#addingoperator_div hr {
+  width: 80%;
+  margin-bottom: 15px;
+  }
+ 
+#modify_div{
+  display: none;
+  margin-top: 10px;
+  padding-top:15px;
+  padding-bottom: 15px;
+  background-color: rgb(154, 194, 183);
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+#modify_div hr {
+  width: 80%;
+  margin-bottom: 15px;
+  } 
+#user_team{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}

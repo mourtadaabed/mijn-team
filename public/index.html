@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>My Team</title>
+    <link rel="stylesheet" href="/css/index.css">
+  </head>
+  <body>
+    <div id="newteam">
+      <a href="/newteam" id="n-t">Creat Your Own Team</a>
+    </div>
+
+    <div id="menu">
+      <a href="/operators" class="w">Operators</a>
+      <a href="/" id="r" class="w">Home</a>
+      <a href="/workstations" class="w">workstations</a>
+      <a href="/proposal" class="w">New Plan</a>
+      <a href="/newuser" class="w">New User</a>
+      <a href="/newshift" class="w">New Shift</a>
+    </div>
+
+    <HR style="width:70%">
+
+    <form id="chooseTeam">
+      <label for="teamInput">Choose your team-shift:</label>
+      <input list="teams" name="team" id="teamInput" autocomplete="off" required>
+      <datalist id="teams">
+          <!-- Options will be dynamically populated by JavaScript -->
+      </datalist>
+      <input type="submit" value="Submit">
+    </form>
+
+    <h2 id="team_name"></h2>
+    <h3 id="date"></h3>
+
+    <table id="maintable">
+      <tr></tr>
+    </table>
+
+    <div id="divextra">
+      <h3 id="titextra">Extra</h3>
+      <hr>
+      <ol id="liextra"></ol>
+      <hr>
+    </div>
+
+    <form id="andere_dag_bekijken">
+      <label for="dayInput">andere dag bekijken:</label>
+      <input list="days" name="day" id="dayInput" autocomplete="off">
+      <datalist id="days"></datalist>
+      <input type="submit" value="verzenden">
+    </form>
+
+    <div class="print">
+      <input onclick="print()" type="submit" name="print" value="print">
+    </div>
+
+    <HR style="width:70%" id="lh">
+    <div id="user_team">Welkom: <span id="usernameDisplay"></span> , Your Team is: <span id="teamname"></span></div>
+
+    <div class="log">
+      <input type="button" id="login" value="Aanmelden">
+    </div>
+
+
+    <script type="text/javascript" src="/js/index.js"></script>
+  </body>
+</html>

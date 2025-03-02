@@ -1,0 +1,64 @@
+body{
+    text-align: center;
+  }
+  a {
+    text-decoration: none;
+    color: black;
+  }
+  .w{
+    padding-left: 5px;
+    padding-right: 5px;
+    border-left: solid 1px;
+  }
+  .w:first-child {
+    border-left: none; 
+  }
+  .w:hover{
+    background-color: lightgray;
+    padding-left: 1.5%;
+    padding-right: 1.5%;
+    font-weight: bold;
+  }
+  hr{
+    width: 70%;
+  }
+#newshift{
+    padding-top: 20px;
+    background-color: #F5F5DC;
+    width: 400px;
+    margin-top: 100px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius:5%;
+    box-shadow: 10px 15px 15px black; /* Shadow effect */
+}
+#cancelButton{
+    margin-bottom: 50px;
+}
+
+#msg-login {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  width: 60%;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 5px;
+  display: none; /* Hidden by default */
+}
+
+/* Success message styling */
+#msg-login.success {
+  background-color: #d4edda; /* Light green */
+  color: #155724; /* Dark green */
+  border: 2px solid #c3e6cb;
+}
+
+/* Error message styling */
+#msg-login.error {
+  background-color: #f8d7da; /* Light red */
+  color: #721c24; /* Dark red */
+  border: 2px solid #f5c6cb;
+}

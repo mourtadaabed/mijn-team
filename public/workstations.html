@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <link rel="stylesheet" href="css/workstations.css">
+    <meta charset="utf-8">
+    <title>workstations</title>
+  </head>
+  <body>
+
+    <div id="menu">
+      <a href="/operators"class="w">Operators</a>
+      <a href="/"id="r"class="w">Home</a>
+      <a href="/workstations"class="w">workstations</a>
+      <a href="/proposal"class="w">New Plan</a>
+      <a href="/newuser"class="w">New User</a>
+      <a href="/newshift"class="w">New Shift</a>
+
+    </div>
+
+    <HR>
+
+      <table id="maintable">
+        <tr>
+          <th>Workstation Number </th>
+          <th>Workstation Name</th>
+          <th>Description</th>
+          <th>Required Operators</th>
+        </tr>
+        
+      </table>
+
+<div id="new-station">
+  <HR>
+  <h3>Add New station Or Edit exist one </h3>
+  <form action="" id="edit_form">
+  <label for="station_number">Station Number:</label>
+  <input type="number" id="station_number" name="station_number" value=""required>
+  <br>
+  <label for="station_name">Station Name:</label>
+  <input type="text" id="station_name" name="station_name" value="" required><br>
+
+  <label for="requiredOperators">Required Operators:</label>
+  <input type="number" id="requiredOperators" name="requiredOperators" value="" required><br>
+
+  <label for="description">Description:</label><br>
+  <textarea  id="description" name="description" rows="4" cols="50"></textarea><br>
+  <input type="submit" value="add/edit">
+</form>
+</div>
+
+
+<div id="user_team">Welkom: <span id="username"></span> , Your Team is: <span id="teamname"></span></div>
+<div class="log">
+  ​<input type="button" id="logout" onclick="logout()" value="uitlogen">
+</div>
+
+<script  src="js/workstations.js"></script>
+  </body>
+</html>

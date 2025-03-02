@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link rel="stylesheet" href="css/proposal.css">
+</head>
+<body>
+  <div id="bg">
+    <div id="menu">
+      <a href="/operators" class="w">Operators</a>
+      <a href="/" id="r" class="w">Home</a>
+      <a href="/workstations" class="w">Workstations</a>
+      <a href="/proposal" class="w">New Plan</a>
+      <a href="/newuser" class="w">New User</a>
+      <a href="/newshift" class="w">New Shift</a>
+    </div>
+    <hr>
+    <div id="aan_div">
+      <div id="aantitle_div">
+        <h1>Aanwezigen</h1>
+      </div>
+      <div id="plogdiv"></div>
+      <form id="form">
+        <label for="id">Geef datum in: </label>
+        <input type="number" id="id" name="id" required>
+        <hr>
+        <div id="maindiv">
+          <div id="teammembers_div">
+            <h1>Teamleden</h1>
+          </div>
+          <div id="reserves_div">
+            <h1>Reserves</h1>
+          </div>
+          <div id="jobstunds_div">
+            <h1>Jobstudenten</h1>
+          </div>
+        </div>
+        <hr>
+        <input type="submit">
+      </form>
+    </div>
+
+    <div id="proposal-div" style="display: none;">
+      <h2 class="team_naam" id="team_naam"></h2>
+      <h3 class="date" id="date"></h3>
+      <hr>
+      <div>
+        <table id="maintable">
+          <tr>
+            <th>Werkpost Nummer</th>
+            <th>Werkpost Naam</th>
+            <th>Operator</th>
+            <th>Opleiding</th>
+          </tr>
+        </table>
+        <div id="divextra">
+          <h3 id="titextra">Extra</h3>
+          <hr>
+          <ol id="liextra"></ol>
+        </div>
+        <div class="buttons">
+          <input type="button" id="ver" value="Ververs">
+          <input type="button" id="bev" value="Bevestigen">
+        </div>
+      </div>
+    </div>
+
+    <div class="bg_dropdown" id="bg_dropdown">
+      <div class="dropdown-div" id="dropdown-div">
+        <h3 id="tit-list-anwz"></h3>
+        <p id="niemand">wis!</p>
+        <ol id="aanwezigen-dd"></ol>
+      </div>
+    </div>
+
+    <hr>
+    <div id="user_team">Welkom: <span id="username"></span>, Your Team is: <span id="teamname"></span></div>
+    <div class="log">
+      <input type="button" id="logout" value="Uitlogen">
+    </div>
+  </div>
+
+  <script type="module" src="js/proposal.js"></script>
+</body>
+</html>

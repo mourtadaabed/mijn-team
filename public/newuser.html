@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New User Registration</title>
+    <link rel="stylesheet" href="css/newuser.css"> <!-- Link to your CSS file -->
+</head>
+<body>
+
+    <div id="menu">
+        <a href="/operators"class="w">Operators</a>
+        <a href="/"id="r"class="w">Home</a>
+        <a href="/workstations"class="w">workstations</a>
+        <a href="/proposal"class="w">New Plan</a>
+        <a href="/newuser"class="w">New User</a>
+        <a href="/newshift"class="w">New Shift</a>
+  <hr>
+      </div>
+
+
+        <!-- Registration box -->
+        <div class="logindiv">
+            <h2>New User Registration</h2>
+            <h4 id="user_team"></h4>
+            <h4 id="current_user"></h4>
+            <form id="userdata">
+                <!-- Username -->
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                
+
+                <!-- Password -->
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+        
+
+                <!-- Email -->
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+              
+
+                <!-- Submit Button -->
+                <button type="submit" id="send-login">Register</button>
+            </form>
+
+            <!-- Cancel Button -->
+            <hr style="width:80%">
+            
+            <input type="button" name="cancel" value="Cancel" onclick="cancel()">
+           
+
+            <!-- Message Display -->
+            <div id="msg-login"></div>
+        </div>
+
+
+    <script type="text/javascript" src="js/newuser.js"></script>
+</body>
+</html>

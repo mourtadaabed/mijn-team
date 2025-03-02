@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <link rel="stylesheet" href="css/operators.css">
+    <meta charset="utf-8">
+    <title>operators</title>
+  </head>
+  <body>
+    <div id = "background">
+    <div class="menu">
+      <a href="/operators"class="o">operators</a>
+      <a href="/"class="r">Home</a>
+      <a href="/workstations"class="w">workstations</a>
+      <a href="/proposal"class="w">New Plan</a>
+      <a href="/newuser"class="w">new user</a>
+      <a href="/newshift"class="w">New Shift</a>
+      <HR>
+    </div>      
+
+
+        <div class="menu2">
+          <input id="bt-res" type="button" value="Reserves">
+          <input id="bt-tea" type="button" value="teamleden">
+          <input id="bt-all" type="button" value="all">
+          <input id="bt-job" type="button" value="jobsudenten">
+        </div>
+
+        
+      <table  id="maintable">
+        <tr>
+          <th rowspan="2" >operator </th>
+          <th colspan="10">Workstations</th>
+        </tr>
+      </table>
+
+  <div id="addingoperator_div">
+    <h3>Adding Or Editing Operator</h3>
+    <hr>
+    <form id = "newoperator">
+      <label for="number">Number</label>
+      <input id="number"name="number"type="number">
+      <label for="name">Name</label>
+      <input id="name"name="name"type="text">
+      <label for="rol">Rol</label>
+      <select name="rol" id="rol">
+        <option value="teammember">teammember</option>
+        <option value="reserve">Reserve</option>
+        <option value="jobstudent">Jobstudent</option>
+      </select>
+      <br><br>
+      <input type="submit" value="add">
+    </form>
+  </div>
+
+  <div id="modify_div">
+    <h3>Editing Operator</h3>
+
+    <form id = "oldoperator">
+      <p id="oldname_p"><span id="oldname_s"></span><span id="oldrol_s"></span><span id="oldnumber_s"></span></p>
+      <label for="newname">New Name</label>
+      <input id="newname"name="name"type="text">
+      <label for="newrol">Rol</label>
+      <select name="rol" id="newrol">
+        <option value="teammeber">teammeber</option>
+        <option value="reserve">Reserve</option>
+        <option value="jobstudent">Jobstudent</option>
+      </select>
+      <br><br>
+      <input type="submit" value="update">
+    </form>
+  </div>
+  <hr>
+  <div id="user_team">Welkom: <span id="username"></span> , Your Team is: <span id="teamname"></span></div>
+  <div class="log">
+    ​<input type="button" id="logout" onclick="logout()" value="uitloggen">
+  </div>
+
+</div> 
+
+    <script  src="js/operators.js"></script>
+  </body>
+</html>

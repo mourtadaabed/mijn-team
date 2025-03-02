@@ -1,0 +1,190 @@
+body{
+  text-align: center;
+}
+#newteam{
+  text-align: center;
+}
+#menu,#user_team{
+  display: none;
+}
+#team_name {
+  color: black;
+  font-size:40px;
+  text-align: center;
+}
+#date{
+  color: black;
+  font-size:40px;
+  text-align: center;
+}
+
+#menu , .log{
+  width:70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align:center;
+
+}
+
+
+
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+#menu-logedin{
+  width:70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align:center;
+  display: none;
+
+}
+.r,.w,.o{
+  padding-left: 1%;
+  padding-right: 1%;
+}
+.r,.w{
+  border-left:solid;
+}
+.w:first-child {
+  border-left: none; 
+}
+
+
+
+.b:hover,.n:hover,.a:hover{
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+  cursor: pointer;
+  font-weight: bold;
+}
+.b,.n,.a{
+  padding-left: 1%;
+  padding-right: 1%;
+}
+.b,.n{
+  border-left:solid;
+}
+
+table{font-family: arial, sans-serif;
+ border-collapse: collapse;
+ width: 50%;
+ margin-left: auto;
+ margin-right: auto;
+}
+ td, th {
+   border-left: 1px solid black;
+   text-align: left;
+   padding: 8px;
+ }
+
+ #maintable tr:nth-child(odd)  {
+   background-color: #dddddd;
+ }
+
+ #maintable tr td:first-child { 
+  width : 10%; 
+} 
+
+
+
+#divextra{
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  display: none;
+  text-align: left;
+}
+#titextra{
+  margin-bottom: -9px;
+}
+ form{
+   margin-top:1%;
+   margin-bottom:1%;
+   text-align: center;
+ }
+
+.print{
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
+}
+
+#login{
+  margin-top:2%;
+}
+/*start login div*/
+
+.backgroundlogin{
+  display: none;
+  position: absolute;
+  top: 0;
+  left : 0;
+  background-color: grey;
+  background: rgb(0 0 0 / 40%);
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+}
+.logindiv{
+  display: none;
+  position:absolute;
+  z-index: 3;
+  top: calc(50% - 250px);
+  left : calc(50% - 150px);
+  width: 300px;
+  height: 300px;
+  border: 1px solid black;
+  background-color: #F5F5DC;
+  border-radius: 5%;
+  text-align: center;
+  box-shadow: 10px 15px 15px black;
+}
+
+#msg-login{
+  margin-top:2%;
+}
+
+/*end login div*/
+
+
+@media print {
+  .team_naam ,.date{
+    font-size: 30px;
+  }
+  
+  .menu ,.print,.log{
+  display: none;
+  }
+  
+  #andere_dag_bekijken,#lh{
+      display: none;
+  }
+  #divextra{
+    width: 100%;
+  }
+  
+  #maintable {
+      width: 100%;
+      border: 1px solid #ddd;
+    }
+    
+
+    #maintable td, th {
+      border: 1px solid black;
+      text-align: left;
+      font-size: 25px;
+      padding: 8px;
+      background-color:red;
+    }
+   
+    #maintable tr:nth-child(even) {
+      text-align: right;
+      background-color:green;
+    }
+
+}
