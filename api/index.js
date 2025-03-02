@@ -793,6 +793,10 @@ app.get("/check-auth", authenticate, (req, res) => {
   res.status(200).json({ isAuthenticated: true, user: req.user });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
+});
+
 // Custom 404 Handler
 app.use((req, res, next) => {
   if (req.method === "GET" && !req.originalUrl.startsWith("/api")) {
