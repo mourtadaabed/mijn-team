@@ -21,14 +21,8 @@
 
     <HR style="width:70%">
 
-    <form id="chooseTeam">
-      <label for="teamInput">Choose your team-shift:</label>
-      <input list="teams" name="team" id="teamInput" autocomplete="off" required>
-      <datalist id="teams">
-          <!-- Options will be dynamically populated by JavaScript -->
-      </datalist>
-      <input type="submit" value="Submit">
-    </form>
+
+
 
     <h2 id="team_name"></h2>
     <h3 id="date"></h3>
@@ -44,12 +38,17 @@
       <hr>
     </div>
 
-    <form id="andere_dag_bekijken">
-      <label for="dayInput">andere dag bekijken:</label>
-      <input list="days" name="day" id="dayInput" autocomplete="off">
-      <datalist id="days"></datalist>
-      <input type="submit" value="verzenden">
-    </form>
+    <input list="teams" id="teamInput" name="teamInput" placeholder="Select a team">
+    <datalist id="teams">
+      <!-- Options populated by fetchTeams -->
+    </datalist>
+
+
+
+    <input list="days" id="dayInput" name="day" placeholder="Select a day">
+    <datalist id="days">
+      <!-- Options populated elsewhere -->
+    </datalist>
 
     <div class="print">
       <input onclick="print()" type="submit" name="print" value="print">

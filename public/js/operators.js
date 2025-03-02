@@ -274,6 +274,7 @@ async function getData2(form, number) {
 
 
 async function fetchOperators(teamName, shiftName) {
+    
     try {
         const response = await fetch('/operators', {
             method: 'POST',

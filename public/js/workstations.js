@@ -150,7 +150,7 @@ async function getData(form) {
     if (result) {
         const updateResult = await update_station_in_db(station_number, station_name, requiredOperators, description, team_name);
         if (updateResult.success) {
-            alert('Station updated successfully!');
+            console.log('Station updated successfully!');
         } else {
             alert('Failed to update station.');
         }

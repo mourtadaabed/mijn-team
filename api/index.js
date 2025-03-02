@@ -640,7 +640,7 @@ async function findoperator(attendees, id, team, shift) {
       (station) => new Station(station.station_number, station.station_name, station.requiredOperators, station.description)
     );
 
-    const proposal = await test_proposaldayplan(id, stations_db, operators_db, team, shift);
+    const proposal = await proposaldayplan(id, stations_db, operators_db, team, shift);
     return proposal;
   } catch (error) {
     console.error("Error in findoperator:", error.message);
@@ -648,7 +648,7 @@ async function findoperator(attendees, id, team, shift) {
   }
 }
 
-async function test_proposaldayplan(id, stations, attendees, team, shift) {
+async function proposaldayplan(id, stations, attendees, team, shift) {
   const dayStations = [];
   const dayExtra = [];
   const assignedOperators = [];
@@ -681,65 +681,8 @@ async function test_proposaldayplan(id, stations, attendees, team, shift) {
   return dayplan;
 }
 
-async function proposaldayplan(id, stations, attendees, team, shift) {
-  const newstattions = [];
-  const newextra = [];
-  const assignedOperators = [];
-
-  for (let index = 0; index < stations.length; index++) {
-    const required = stations[index].requiredOperators;
-    let operatorsAssigned = 0;
-
-    for (let j = 0; j < attendees.length && operatorsAssigned < required; j++) {
-      const operatorHistory = await history_of_operator(attendees[j].name, team, shift);
-      if (
-        operatorHistory.includes(stations[index].station_name) &&
-        attendees[j].stations.includes(stations[index].station_name) &&
-        !assignedOperators.includes(attendees[j].name)
-      ) {
-        newstattions.push(new DayStation(stations[index].station_number, stations[index].station_name, attendees[j].name, "", required));
-        assignedOperators.push(attendees[j].name);
-        operatorsAssigned++;
-      }
-    }
-
-    if (operatorsAssigned < required) {
-      for (let j = 0; j < attendees.length && operatorsAssigned < required; j++) {
-        if (!assignedOperators.includes(attendees[j].name)) {
-          newstattions.push(
-            new DayStation(stations[index].station_number, stations[index].station_name, attendees[j].name, "", stations[index].requiredOperators)
-          );
-          assignedOperators.push(attendees[j].name);
-          operatorsAssigned++;
-        }
-      }
-    }
-  }
-
-  for (let j = 0; j < attendees.length; j++) {
-    if (!assignedOperators.includes(attendees[j].name)) newextra.push(attendees[j].name);
-  }
-
-  const dayplan = new Day(id, newstattions, newextra);
-  return dayplan;
-}
-
 async function history_of_operator(operatorName, team, shift) {
-  try {
-    if (!db) throw new Error("Database connection not initialized");
 
-    const teamDoc = await db.collection("teams").findOne({ teamName: team });
-    if (!teamDoc) return [];
-
-    const shiftData = teamDoc.shifts.find((s) => s.name === shift);
-    if (!shiftData) return [];
-
-    const operator = shiftData.operators.find((op) => op.name === operatorName);
-    return operator ? operator.stations || [] : [];
-  } catch (error) {
-    console.error("Error retrieving operator history:", error.message);
-    return [];
-  }
 }
 
 app.post("/dayplan", authenticate, async (req, res) => {

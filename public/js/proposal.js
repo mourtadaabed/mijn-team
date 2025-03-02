@@ -41,7 +41,10 @@ teamName.innerText=team_name+"-"+shift_name;
 let teammembers_div = document.getElementById("teammembers_div");
 let reserves_div = document.getElementById("reserves_div");
 let jobstunds_div = document.getElementById("jobstunds_div");
-
+var  date = document.getElementById("date");
+var tab = document.getElementById("maintable");
+var ext_list = document.getElementById("liextra");
+var aanwezigen = document.getElementById("aanwezigen-dd");
 
 
 
@@ -254,10 +257,7 @@ async function fetchAttendees(id, attendees, team, shift) {
   }
   
   
-  var  date = document.getElementById("date");
-  var tab = document.getElementById("maintable");
-  var ext_list = document.getElementById("liextra");
-  var aanwezigen = document.getElementById("aanwezigen-dd");
+
   
   ///************************* */
   
@@ -328,7 +328,7 @@ async function fetchAttendees(id, attendees, team, shift) {
         const p = index_of(station);
 
         if (p === null || !dayplan.stations[p]) {
-            console.error("Post not found in posten");
+            console.error("Station not found in Stations");
             return;
         }
 
@@ -369,8 +369,16 @@ async function fetchAttendees(id, attendees, team, shift) {
                 console.error("Post not found in dag.posten");
                 return;
             }
-
             // Set the operator or opleiding to the selected value
+            // If the value exists and is not already in dayplan.extra, add it
+                    // Get the current value of the operator or training
+              let clicked = col === 3 ? dayplan.stations[p].operator : dayplan.stations[p].training;
+              // If the value exists and is not already in dayplan.extra, add it
+              if (clicked && !dayplan.extra.includes(clicked)) {
+                  dayplan.extra.push(clicked);
+              }
+
+
             dayplan.stations[p][col === 3 ? "operator" : "training"] = dayplan.extra[index];
 
             // Remove the selected value from dayplan.extra

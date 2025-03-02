@@ -39,21 +39,9 @@ const creatnewteam = document.getElementById("newteam");
 const chooseTeam = document.getElementById("chooseTeam");
 const userName = document.getElementById("usernameDisplay");
 const teamName = document.getElementById("teamname");
- 
 
 
-
-function loggedin() {
-  fetchDaysList(team_name, shift_name);
-}
-function notloggedout() {
-  
-}
-
-
-
-
-
+const teamInput=document.getElementById("teamInput");
 
 loginButton.addEventListener("click", function () {
   window.location.href = '/login';
@@ -92,6 +80,7 @@ async function fetchTeams() {
         console.error('Error:', error);
         alert('An error occurred while fetching the teams.');
     }
+
 }
 
 // Function to populate the datalist
@@ -105,6 +94,8 @@ function populateTeams(teams) {
         option.value = team.teamName+"-"+team.shiftName;
         datalist.appendChild(option);
     });
+
+    fetchDaysOfTeam(teams[0].teamName,teams[0].shiftName);
 }
 
 // Event listeners
@@ -112,12 +103,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     await fetchTeams(); // Fetch teams when page loads
 });
 
-document.getElementById("chooseTeam").addEventListener("submit", function(event) {
-    event.preventDefault();
-    const selectedTeam = document.getElementById("teamInput").value;
-    let team_name =selectedTeam.slice(0, 2);
-    let shift_name = selectedTeam.slice(3, 4);
-    fetchDaysOfTeam(team_name,shift_name);
+teamInput.addEventListener("change", function(event) {
+  const selectedTeam = event.target.value; // Get the selected value
+  if (selectedTeam) { // Only proceed if something is selected
+      let team_name = selectedTeam.slice(0, 2);
+      let shift_name = selectedTeam.slice(3, 4);
+      fetchDaysOfTeam(team_name, shift_name);
+  }
 });
 
 
@@ -144,7 +136,7 @@ async function fetchDaysOfTeam(teamName, shiftName) {
 
     if (response.ok) {
       const days = await response.json(); // Parse the JSON response (array of day names)
-      populateDays(days); // Populate the datalist with fetched days
+      populateDays(days,teamName,shiftName); // Populate the datalist with fetched days
     } else {
       const errorData = await response.json(); // Try to get error details
       alert(`Error fetching days: ${errorData.message || 'Unknown error'}`);
@@ -156,7 +148,7 @@ async function fetchDaysOfTeam(teamName, shiftName) {
 }
 
 // Function to populate the datalist
-function populateDays(days) {
+function populateDays(days,team_name,shift_name) {
   const datalist = document.getElementById("days");
   datalist.innerHTML = ''; // Clear existing options
 
@@ -166,21 +158,17 @@ function populateDays(days) {
     option.value = day; // Directly use the string
     datalist.appendChild(option);
   });
+
+   fetchOneDay(days[0],team_name,shift_name);
 }
 
-// Event Listeners to chose a specific day to show
-document.getElementById("andere_dag_bekijken").addEventListener("submit", function (e) {
-  e.preventDefault();
-  getData(e.target);
+// Event Listener to choose a specific day
+document.getElementById("dayInput").addEventListener("change", function (e) {
+  const selectedDay = e.target.value; // Get the selected value
+  if (selectedDay) { // Only proceed if something is selected
+    fetchOneDay(selectedDay, team_name, shift_name);
+  }
 });
-
-// Handle form submission to view a specific day
-function getData(form) {
-  const fd = new FormData(form);
-  const selectedDay = fd.get("day");
-
-  fetchOneDay(selectedDay,team_name,shift_name);
-}
 
 async function fetchOneDay(day_id, teamName, shiftName) {
   try {
@@ -297,13 +285,6 @@ function storedUser() {
 }
 
 
-////////////////// old system ////////////////////////////
-
-
-
-
-
-
 
 async function logout() {
   try {
@@ -343,30 +324,11 @@ async function checkAuth() {
 
       if (data.isAuthenticated) {
         // User is logged in
-        menu.style.display = "block";
-        creatnewteam.style.display = "none";
-        chooseTeam.style.display = "none";
-        loginButton.value = "Uitloggen";
-        loginButton.onclick = logout;
-        user_name = storedUser().name ;
-        team_name =storedUser().shift.slice(0, 2);
-        shift_name = storedUser().shift.slice(3, 4);
-        userName.innerText=storedUser().name ;
-        teamName.innerText=storedUser().shift; 
-        document.getElementById("user_team").style.display = "block";
-
-
-
+        loggedin();
 
       } else {
         // User is not logged in
-        menu.style.display = "none";
-        loginButton.value = "Aanmelden";
-        creatnewteam.style.display = "block";
-        chooseTeam.style.display = "block";
-        loginButton.addEventListener("click", function () {
-          window.location.href = '/';
-        });
+        NOT_loggedin();
       }
     } else {
       console.error('Failed to check authentication status:', response.statusText);
@@ -378,8 +340,32 @@ async function checkAuth() {
 
 
 
+function NOT_loggedin() {
+  menu.style.display = "none";
+  loginButton.value = "Aanmelden";
+  creatnewteam.style.display = "block";
 
+  loginButton.addEventListener("click", function () {
+    window.location.href = '/'; 
+  });
+}
+ function loggedin() {
+  menu.style.display = "block";
+  creatnewteam.style.display = "none";
 
+  loginButton.value = "Uitloggen";
+  loginButton.onclick = logout;
+  user_name = storedUser().name ;
+  team_name =storedUser().shift.slice(0, 2);
+  shift_name = storedUser().shift.slice(3, 4);
+  userName.innerText=storedUser().name ;
+  teamName.innerText=storedUser().shift; 
+  document.getElementById("user_team").style.display = "block";
+  teamInput.style.display = "none";
+  
+  fetchDaysOfTeam(team_name, shift_name);
+
+ }
 
 
 
