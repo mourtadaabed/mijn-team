@@ -158,8 +158,12 @@ function populateDays(days,team_name,shift_name) {
     option.value = day; // Directly use the string
     datalist.appendChild(option);
   });
-
-   fetchOneDay(days[0],team_name,shift_name);
+ if(days.length>0){
+  fetchOneDay(days[0],team_name,shift_name);
+ }else{
+  alert("no days found");
+ }
+   
 }
 
 // Event Listener to choose a specific day
