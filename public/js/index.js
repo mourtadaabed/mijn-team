@@ -276,6 +276,9 @@ function drawTable(day) {
     });
     extraContainer.style.display = "block";
   }
+
+document.getElementById("teamInput").setAttribute('value', '');
+document.getElementById("dayInput").setAttribute('value', '');
 }
 
 
