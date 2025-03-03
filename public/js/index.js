@@ -162,6 +162,7 @@ function populateDays(days,team_name,shift_name) {
   fetchOneDay(days[0],team_name,shift_name);
  }else{
   alert("no days found");
+  fetchTeams();
  }
    
 }
@@ -224,7 +225,8 @@ function clearTable() {
 
 
   // Clear extra info and hide the container
-
+  const extraInfo = document.getElementById("liextra");
+  extraInfo.innerHTML = ''; // Clear existing options;
   const extraContainer = document.getElementById("divextra");
   extraContainer.style.display = "none";
 }
