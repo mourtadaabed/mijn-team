@@ -1,8 +1,8 @@
 class DayStation{
-    constructor(stationNumber,stationName,operator,training="",requiredOperators) {
+    constructor(stationNumber,stationName,operators,training="",requiredOperators) {
     this.stationNumber = stationNumber;
     this.stationName = stationName;
-    this.operator = operator;
+    this.operators = operators;//Here is a list of operator names
     this.training = training;
     this.requiredOperators = requiredOperators;
     }

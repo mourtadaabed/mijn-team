@@ -250,10 +250,6 @@ async function update_station_in_db(station_number, station_name, requiredOperat
 }
 
 
-
-//////////////////////////////////
-
-
 async function logout() {
   try {
     // Send a request to the server to log out

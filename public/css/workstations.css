@@ -113,3 +113,6 @@ font-weight:bold;
   margin-top: 10px;
   margin-bottom: 10px;
 }
+#edit-station_div{
+  display: none;
+}

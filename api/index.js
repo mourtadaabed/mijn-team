@@ -655,26 +655,37 @@ async function proposaldayplan(id, stations, attendees, team, shift) {
 
   for (let i = 0; i < stations.length; i++) {
     let operatorsNeeded = stations[i].requiredOperators;
-    let assignedToThisStation = false;
+    const operatorsForStation = []; // Array to hold operators for this station
 
+    // Assign operators to this station until we meet the required number or run out of available operators
     for (let j = 0; j < attendees.length && operatorsNeeded > 0; j++) {
-      if (attendees[j].stations.includes(stations[i].station_number) && !assignedOperators.includes(attendees[j].name)) {
-        dayStations.push(
-          new DayStation(stations[i].station_number, stations[i].station_name, attendees[j].name, "", stations[i].requiredOperators)
-        );
-        assignedOperators.push(attendees[j].name);
-        operatorsNeeded--;
-        assignedToThisStation = true;
+      if (
+        attendees[j].stations.includes(stations[i].station_number) && 
+        !assignedOperators.includes(attendees[j].name)
+      ) {
+        operatorsForStation.push(attendees[j].name); // Add operator to this station's list
+        assignedOperators.push(attendees[j].name);   // Mark operator as assigned
+        operatorsNeeded--;                           // Decrease the count of needed operators
       }
     }
 
-    if (!assignedToThisStation) {
-      dayStations.push(new DayStation(stations[i].station_number, stations[i].station_name, null, null, stations[i].requiredOperators));
-    }
+    // Create a single DayStation entry with all assigned operators
+    dayStations.push(
+      new DayStation(
+        stations[i].station_number,
+        stations[i].station_name,
+        operatorsForStation.length > 0 ? operatorsForStation : null, // Use the array of operators, or null if none assigned
+        null,
+        stations[i].requiredOperators
+      )
+    );
   }
 
+  // Add unassigned attendees to dayExtra
   attendees.forEach((attendee) => {
-    if (!assignedOperators.includes(attendee.name)) dayExtra.push(attendee.name);
+    if (!assignedOperators.includes(attendee.name)) {
+      dayExtra.push(attendee.name);
+    }
   });
 
   const dayplan = new Day(id, dayStations, dayExtra);

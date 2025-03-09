@@ -95,7 +95,6 @@ function populateTeams(teams) {
         datalist.appendChild(option);
     });
 
-    fetchDaysOfTeam(teams[0].teamName,teams[0].shiftName);
 }
 
 // Event listeners
@@ -159,7 +158,6 @@ function populateDays(days,team_name,shift_name) {
     datalist.appendChild(option);
   });
 
-   fetchOneDay(days[0],team_name,shift_name);
 }
 
 // Event Listener to choose a specific day
@@ -223,6 +221,8 @@ function clearTable() {
 
   const extraContainer = document.getElementById("divextra");
   extraContainer.style.display = "none";
+  const liextra = document.getElementById("liextra");
+  liextra.innerHTML = ''; // Clear existing options
 }
 
 
@@ -331,10 +331,10 @@ async function checkAuth() {
         NOT_loggedin();
       }
     } else {
-      console.error('Failed to check authentication status:', response.statusText);
+      console.log('Failed to check authentication status:', response.statusText);
     }
   } catch (error) {
-    console.error('Error checking authentication status:', error);
+    console.log('Error checking authentication status:', error);
   }
 }
 

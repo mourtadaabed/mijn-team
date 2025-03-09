@@ -75,6 +75,7 @@ hr {
 #divextra hr {
   width: 100%;
 }
+
 /* Title div styling */
 #aantitle_div {
   text-align: center;
@@ -113,11 +114,41 @@ td,
 th {
   border-left: 1px solid black;
   text-align: left;
-  padding: 8px;
+  padding: 4px;
 }
 
 tr:nth-child(odd) {
   background-color: #dddddd;
+}
+
+/* Styling for the operators list in cell3 */
+#maintable ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#maintable ul li {
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+#maintable ul li span {
+  cursor: pointer;
+  color: black; /* Changed from blue to black */
+}
+
+#maintable ul li span:hover {
+  color: #333; /* Darker gray for hover effect (instead of darkblue) */
+}
+
+.d_en_v {
+  vertical-align: top;
+}
+
+.d_en_v:hover {
+  cursor: pointer;
 }
 
 /* Extra div styling */
@@ -224,10 +255,8 @@ a {
   padding-right: 1.5%;
   font-weight: bold;
 }
-#user_team{
+
+#user_team {
   margin-top: 10px;
   margin-bottom: 10px;
-}
-.d_en_v:hover{
-  cursor: pointer;
 }

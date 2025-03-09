@@ -1,8 +1,8 @@
 class DayStation{
-  constructor(stationNumber,stationName,operator,requiredOperators = 1,training="") {
+  constructor(stationNumber,stationName,operators,requiredOperators = 1,training="") {
   this.stationNumber = stationNumber;
   this.stationName = stationName;
-  this.operator = operator;
+  this.operators = operators;
   this.training = training;
   this.requiredOperators =requiredOperators ;
   }
@@ -52,11 +52,11 @@ var aanwezigen = document.getElementById("aanwezigen-dd");
 fetchOperators(team_name, shift_name)
     .then(fetchedOperators => {
         filter_operators(fetchedOperators);
-        // Optionally update UI here, e.g., drawtable(fetchedOperators);
+        //  update UI here, e.g., drawtable(fetchedOperators);
     })
     .catch(error => {
         console.error('Failed to fetch operators:', error);
-        // Optionally update UI to show error state
+        //  update UI to show error state
     });
 
 
@@ -90,7 +90,7 @@ async function fetchOperators(teamName, shiftName) {
   }
 }
 
-console
+
 
 function filter_operators(operators){
   
@@ -273,75 +273,102 @@ async function fetchAttendees(id, attendees, team, shift) {
     }
 
 
-  function drawtable(dayplan){
-
-    clear();
-    date.innerText="week "+dayplan.id.slice(2, 4)+" Day "+dayplan.id.slice(4, 5);
-    for (let i = 0; i < dayplan.stations.length; i++) {
-      var row = tab.insertRow(i+1);
-      var cell1 = row.insertCell(0);
-      var cell2 = row.insertCell(1);
-      var cell3 = row.insertCell(2);
-      var cell4 = row.insertCell(3);
-      cell1.innerHTML = dayplan.stations[i].stationNumber;
-      cell2.innerHTML = dayplan.stations[i].stationName;
-      cell3.innerHTML = dayplan.stations[i].operator;
-      cell3.setAttribute("class","d_en_v");
+    function drawtable(dayplan) {
+      clear();
+      date.innerText = "week " + dayplan.id.slice(2, 4) + " Day " + dayplan.id.slice(4, 5);
+      for (let i = 0; i < dayplan.stations.length; i++) {
+          var row = tab.insertRow(i + 1);
+          var cell1 = row.insertCell(0);
+          var cell2 = row.insertCell(1);
+          var cell3 = row.insertCell(2);
+          var cell4 = row.insertCell(3);
+          cell1.innerHTML = dayplan.stations[i].stationNumber;
+          cell2.innerHTML = dayplan.stations[i].stationName;
   
-      cell3.onclick = function() {
-        createdropdownlist(dayplan.stations[i].stationName,3);
-      };
-      cell4.innerHTML = dayplan.stations[i].training;
-      cell4.setAttribute("class","d_en_v");
+          if (dayplan.stations[i].operators && Array.isArray(dayplan.stations[i].operators)) {
+              cell3.innerHTML = "";
+              const ul = document.createElement("ul"); 
+              dayplan.stations[i].operators.forEach((operator) => {
+                  const li = document.createElement("li");
+                  const span = document.createElement("span");
+                  span.textContent = operator;
+                  span.style.cursor = "pointer"; // Indicate clickability
+                  span.onclick = function(e) {
+                      e.stopPropagation();
+                      createdropdownlist(dayplan.stations[i].stationName, 3, operator);
+                  };
+                  li.appendChild(span);
+                  ul.appendChild(li);
+              });
+              cell3.appendChild(ul);
+          } else {
+              cell3.innerHTML = "No operators assigned";
+          }
   
-      cell4.onclick = function() {
-        createdropdownlist(dayplan.stations[i].stationName,4);
-        document.getElementById("dropdown-div").style.top ="100px";
-      };
-      if (dayplan.stations[i].operator==null || dayplan.stations[i].operator==""){
-        cell3.innerHTML = "post niet gedekt !";
-        row.style.background = "red";
+          cell3.setAttribute("class", "d_en_v");
+          cell3.onclick = function() {
+              createdropdownlist(dayplan.stations[i].stationName, 3);
+          };
+          cell4.innerHTML = dayplan.stations[i].training;
+          cell4.setAttribute("class", "d_en_v");
+  
+          cell4.onclick = function() {
+              createdropdownlist(dayplan.stations[i].stationName, 4);
+              document.getElementById("dropdown-div").style.top = "100px";
+          };
+          if (dayplan.stations[i].operators == null || dayplan.stations[i].operators.length === 0) {
+              cell3.innerHTML = "post niet gedekt !";
+              row.style.background = "red";
+          }
       }
-    }
   
-  
-        for (let index = 0; index < dayplan.extra.length; index++) {
-            let el = document.createElement("li"); 
-            el.innerHTML = dayplan.extra[index];
-            ext_list.appendChild(el);
-            
-        } 
-  
-  
-  
+      for (let index = 0; index < dayplan.extra.length; index++) {
+          let el = document.createElement("li");
+          el.innerHTML = dayplan.extra[index];
+          ext_list.appendChild(el);
+      }
   }
-  
-  
 
 
-  function createdropdownlist(station, col) {
+
+  function createdropdownlist(station, col, clickedOperator = null) {
     let bg = document.getElementById("bg_dropdown");
     let tdd = document.getElementById("tit-list-anwz");
     let niemand = document.getElementById("niemand");
+    let aanwezigen = document.getElementById("aanwezigen-dd");
+
+    if (!bg || !tdd || !niemand || !aanwezigen) {
+        console.error("One or more dropdown elements not found:", { bg, tdd, niemand, aanwezigen });
+        return;
+    }
 
     niemand.onclick = function() {
         const p = index_of(station);
-
         if (p === null || !dayplan.stations[p]) {
             console.error("Station not found in Stations");
             return;
         }
-
-        // Get the current value of the operator or training
-        let clicked = col === 3 ? dayplan.stations[p].operator : dayplan.stations[p].training;
-
-        // If the value exists and is not already in dayplan.extra, add it
-        if (clicked && !dayplan.extra.includes(clicked)) {
-            dayplan.extra.push(clicked);
+        let clicked = col === 3 ? dayplan.stations[p].operators : dayplan.stations[p].training;
+        if (col === 3 && Array.isArray(clicked)) {
+            if (clicked.length > 1 && clickedOperator) {
+                // Remove only the clicked operator if there are multiple
+                dayplan.stations[p].operators = clicked.filter(op => op !== clickedOperator);
+                if (clickedOperator && !dayplan.extra.includes(clickedOperator)) {
+                    dayplan.extra.push(clickedOperator); // Move to extra
+                }
+            } else {
+                // Clear all if only one operator or no specific operator clicked
+                clicked.forEach(item => {
+                    if (item && !dayplan.extra.includes(item)) {
+                        dayplan.extra.push(item);
+                    }
+                });
+                dayplan.stations[p].operators = [];
+            }
+        } else if (clicked && !dayplan.extra.includes(clicked)) {
+            dayplan.extra.push(clicked); // Training (string)
+            dayplan.stations[p].training = "";
         }
-
-        // Clear the operator or training field
-        dayplan.stations[p][col === 3 ? "operator" : "training"] = ""; 
         bg.style.display = "none";
         clear();
         drawtable(dayplan);
@@ -355,47 +382,57 @@ async function fetchAttendees(id, attendees, team, shift) {
     aanwezigen.innerHTML = "";
     bg.style.display = "block";
 
-    // Only use dayplan.extra for the dropdown list
+    const ol = document.createElement("ol");
     for (let index = 0; index < dayplan.extra.length; index++) {
-        let el = document.createElement("li");
-        el.setAttribute("class", "li-elemt");
-        el.innerHTML = dayplan.extra[index];
-        aanwezigen.appendChild(el);
-        el.onclick = function() {
+        let li = document.createElement("li");
+        li.setAttribute("class", "li-elemt");
+        li.innerHTML = dayplan.extra[index];
+        ol.appendChild(li);
+        li.onclick = function() {
             bg.style.display = "none";
             const p = index_of(station);
-
             if (p === null || !dayplan.stations[p]) {
                 console.error("Post not found in dag.posten");
                 return;
             }
-            // Set the operator or opleiding to the selected value
-            // If the value exists and is not already in dayplan.extra, add it
-                    // Get the current value of the operator or training
-              let clicked = col === 3 ? dayplan.stations[p].operator : dayplan.stations[p].training;
-              // If the value exists and is not already in dayplan.extra, add it
-              if (clicked && !dayplan.extra.includes(clicked)) {
-                  dayplan.extra.push(clicked);
-              }
 
+            if (col === 3) {
+                let operators = dayplan.stations[p].operators;
+                if (!Array.isArray(operators)) {
+                    operators = operators ? [operators] : [];
+                }
 
-            dayplan.stations[p][col === 3 ? "operator" : "training"] = dayplan.extra[index];
+                if (operators.length < dayplan.stations[p].requiredOperators && !clickedOperator) {
+                    if (!operators.includes(dayplan.extra[index])) {
+                        operators.push(dayplan.extra[index]);
+                    }
+                } else if (clickedOperator) {
+                    if (clickedOperator && !dayplan.extra.includes(clickedOperator)) {
+                        dayplan.extra.push(clickedOperator);
+                    }
+                    operators = operators.filter(op => op !== clickedOperator);
+                    if (!operators.includes(dayplan.extra[index])) {
+                        operators.push(dayplan.extra[index]);
+                    }
+                } else {
+                    console.warn(`Cannot add operator to ${station}: limit reached, click an operator to replace`);
+                    return;
+                }
+                dayplan.stations[p].operators = operators;
+            } else {
+                let clicked = dayplan.stations[p].training;
+                if (clicked && !dayplan.extra.includes(clicked)) {
+                    dayplan.extra.push(clicked);
+                }
+                dayplan.stations[p].training = dayplan.extra[index];
+            }
 
-            // Remove the selected value from dayplan.extra
             dayplan.extra = dayplan.extra.filter(item => item !== dayplan.extra[index]);
-
             drawtable(dayplan);
         };
     }
+    aanwezigen.appendChild(ol);
 }
-  
-  document.getElementById("ver").addEventListener("click", refresh);
-  function refresh() {
-    dayplan=JSON.parse(JSON.stringify(copyday)); 
-    drawtable(dayplan);
-    
-  }
-
 
   document.getElementById("bev").addEventListener("click", bevestigen);
   
@@ -410,7 +447,6 @@ async function fetchAttendees(id, attendees, team, shift) {
   }
 
   async function fetchDayplan(dp, team, shift) {
-    console.log(dp);
     try {
       const payload = { dayplan: dp, team, shift };
       
@@ -516,3 +552,5 @@ async function fetchAttendees(id, attendees, team, shift) {
     window.location.reload();
     }
     });   
+
+    document.getElementById("logout").addEventListener("click", logout);
