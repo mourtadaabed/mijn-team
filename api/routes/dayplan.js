@@ -19,26 +19,84 @@ router.post("/day-plan", authenticate, async (req, res) => {
     const dayPlan = await findoperator(attendees, id, team, shift, db);
     res.status(200).json(dayPlan);
   } catch (error) {
-    console.error("Error generating day plan:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error generating day plan:", error.message);
+    if (error.message === "Database not initialized") {
+      res.status(503).json({ error: "Database unavailable, please try again later" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.post("/dayplan", authenticate, async (req, res) => {
   try {
     const { dayplan, team, shift } = req.body;
+    console.log("Received dayplan:", JSON.stringify(dayplan, null, 2)); // Debug log
+
     const db = getDB();
+    const teamDoc = await db.collection("teams").findOne({ teamName: team });
+    if (!teamDoc) return res.status(404).json({ message: "Team not found" });
+
+    const shiftData = teamDoc.shifts.find((s) => s.name === shift);
+    if (!shiftData) return res.status(404).json({ message: "Shift not found" });
+
+    // Initialize operator_history if it doesn't exist
+    if (!shiftData.operator_history) {
+      shiftData.operator_history = [];
+    }
+
+    // Update operator_history for each operator in the dayplan
+    for (const dayStation of dayplan.stations) {
+      if (dayStation.operators) {
+        for (const operatorName of dayStation.operators) {
+          const operator = shiftData.operators.find((op) => op.name === operatorName);
+          if (operator && operator.number) {
+            let historyEntry = shiftData.operator_history.find((h) => h.number === operator.number);
+            if (!historyEntry) {
+              historyEntry = {
+                name: operator.name,
+                number: operator.number,
+                stations: []
+              };
+              shiftData.operator_history.push(historyEntry);
+            }
+            // Remove existing occurrence of the station_number
+            const index = historyEntry.stations.indexOf(dayStation.station_number);
+            if (index !== -1) {
+              historyEntry.stations.splice(index, 1);
+              console.log(`Removed existing station ${dayStation.station_number} from history for ${operatorName}`);
+            }
+            // Push the new station_number
+            if (dayStation.station_number != null) {
+              historyEntry.stations.push(dayStation.station_number);
+              console.log(`Added station ${dayStation.station_number} to history for ${operatorName}`);
+            } else {
+              console.warn(`Skipping invalid station_number for ${operatorName}:`, dayStation.station_number);
+            }
+          }
+        }
+      }
+    }
+
+    // Update the team document with the new dayplan and updated operator_history
     const result = await db.collection("teams").updateOne(
       { teamName: team, "shifts.name": shift },
-      { $push: { "shifts.$.days": dayplan } }
+      {
+        $set: { "shifts.$.operator_history": shiftData.operator_history },
+        $push: { "shifts.$.days": dayplan }
+      }
     );
 
     if (result.modifiedCount === 0) return res.status(404).json({ message: "Team or shift not found" });
 
     res.status(200).json({ message: "Dayplan submitted successfully" });
   } catch (error) {
-    console.error("Error in /dayplan route:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error in /dayplan route:", error.message);
+    if (error.message === "Database not initialized") {
+      res.status(503).json({ error: "Database unavailable, please try again later" });
+    } else {
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 });
 
@@ -64,6 +122,7 @@ async function findoperator(attendees, id, team, shift, db) {
     );
 
     const proposal = await proposaldayplan(id, stations_db, operators_db, team, shift);
+    console.log("Generated proposal:", proposal); // Debug log
     return proposal;
   } catch (error) {
     console.error("Error in findoperator:", error.message);

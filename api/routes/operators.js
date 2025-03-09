@@ -199,4 +199,43 @@ async function createNewOperator(name, number, rol, team_name, shift_name, db) {
   }
 }
 
+//////// start  of history route i dont know if i need it ..????????
+
+router.get("/operatorhistory", authenticate, async (req, res) => {
+  try {
+    const { operator_number, team_name, shift_name } = req.query;
+    if (!operator_number || !team_name || !shift_name) {
+      return res.status(400).json({ error: "operator_number, team_name, and shift_name are required" });
+    }
+
+    const db = getDB();
+    const teamDoc = await db.collection("teams").findOne(
+      { teamName: team_name, "shifts.name": shift_name },
+      { projection: { "shifts.$": 1 } }
+    );
+
+    if (!teamDoc || !teamDoc.shifts || !teamDoc.shifts.length) {
+      return res.status(404).json({ error: "Team or shift not found" });
+    }
+
+    const shiftData = teamDoc.shifts[0];
+    const historyEntry = shiftData.operator_history
+      ? shiftData.operator_history.find((h) => h.number === parseInt(operator_number))
+      : null;
+
+    if (!historyEntry) return res.status(404).json({ error: "Operator history not found" });
+
+    res.status(200).json({
+      operator_number: historyEntry.number,
+      name: historyEntry.name,
+      stations: historyEntry.stations || []
+    });
+  } catch (error) {
+    console.error("Error fetching operator history:", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+//////// end of history
 module.exports = router;
