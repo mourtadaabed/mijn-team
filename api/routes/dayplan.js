@@ -47,6 +47,7 @@ router.post("/dayplan", authenticate, async (req, res) => {
 
     // Update operator_history for each operator in the dayplan
     for (const dayStation of dayplan.stations) {
+      console.log("Processing dayStation:", dayStation); // Debug log
       if (dayStation.operators) {
         for (const operatorName of dayStation.operators) {
           const operator = shiftData.operators.find((op) => op.name === operatorName);
@@ -121,7 +122,7 @@ async function findoperator(attendees, id, team, shift, db) {
       (station) => new Station(station.station_number, station.station_name, station.requiredOperators, station.description)
     );
 
-    const proposal = await proposaldayplan(id, stations_db, operators_db, team, shift);
+    const proposal = await proposaldayplan(id, stations_db, operators_db, shiftData.operator_history || [], team, shift);
     console.log("Generated proposal:", proposal); // Debug log
     return proposal;
   } catch (error) {
@@ -130,10 +131,20 @@ async function findoperator(attendees, id, team, shift, db) {
   }
 }
 
-async function proposaldayplan(id, stations, attendees, team, shift) {
+async function proposaldayplan(id, stations, attendees, op_history, team, shift) {
   const dayStations = [];
   const dayExtra = [];
   const assignedOperators = [];
+
+  console.log("Operator history for this shift:", op_history); // Debug log for all attendees' history
+
+  // Map attendees to their history for further development
+  const attendeeHistory = attendees.reduce((acc, attendee) => {
+    const historyEntry = op_history.find((h) => h.name === attendee);
+    acc[attendee] = historyEntry ? historyEntry.stations : [];
+    console.log(`History for ${attendee}:`, acc[attendee]); // Log individual attendee history
+    return acc;
+  }, {});
 
   for (let i = 0; i < stations.length; i++) {
     let operatorsNeeded = stations[i].requiredOperators;

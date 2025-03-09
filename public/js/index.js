@@ -226,52 +226,71 @@ function clearTable() {
 }
 
 
-// Draw the table for a specific day
 function drawTable(day) {
-  clearTable();
-  teamname_title.textContent = team_name+"-"+shift_name;
-  datum.textContent = `Dag: ${day.id.slice(4, 5)} Week: ${day.id.slice(2, 4)}`;
+  clearTable(); // Assuming this clears the existing table
+  datum.textContent = "week " + day.id.slice(2, 4) + " Day " + day.id.slice(4, 5);
+  teamname_title.textContent = team_name + "-" + shift_name;
 
-  // Check if any post has an opleiding
-  const hasTraining = day.stations.some(station => station.training);
+  // Create table header 
 
-  // Create table header
   const headerRow = tab.insertRow(0);
-  const headers = ["werkpost nummer", "werkpost", "operator"];
-  if (hasTraining) headers.push("opleiding");
-
+  const headers = ["werkpost nummer", "werkpost", "operator", "opleiding"];
   headers.forEach(headerText => {
-    const cell = headerRow.insertCell();
-    cell.textContent = headerText;
+      const cell = headerRow.insertCell();
+      cell.textContent = headerText;
   });
 
   // Populate table rows
-  day.stations.forEach((station, index) => {
-    const row = tab.insertRow(index + 1);
-    const cells = [station.stationNumber, station.stationName, station.operator];
+  for (let i = 0; i < day.stations.length; i++) {
+      var row = tab.insertRow(i + 1);
+      var cell1 = row.insertCell(0);
+      var cell2 = row.insertCell(1);
+      var cell3 = row.insertCell(2);
+      var cell4 = row.insertCell(3);
 
-    if (hasTraining) cells.push(station.training);
+      cell1.innerHTML = day.stations[i].stationNumber;
+      cell2.innerHTML = day.stations[i].stationName;
 
-    cells.forEach((cellText, cellIndex) => {
-      const cell = row.insertCell(cellIndex);
-      cell.textContent = cellText || "post niet gedekt !"; // Handle empty operator
-      if (!station.operator) row.style.background = "red"; // Highlight undefended posts
-    });
-  });
+      // Handle operators display similar to first function
+      if (day.stations[i].operators && Array.isArray(day.stations[i].operators)) {
+          cell3.innerHTML = "";
+          const ul = document.createElement("ul");
+          day.stations[i].operators.forEach((operator) => {
+              const li = document.createElement("li");
+              li.textContent = operator;
+              ul.appendChild(li);
+          });
+          cell3.appendChild(ul);
+      } else {
+          cell3.innerHTML = "No operators assigned";
+      }
 
-  // Display extra operators if available
+      cell4.innerHTML = day.stations[i].training || "";
+
+      // Highlight rows with no operators
+      if (day.stations[i].operators == null || day.stations[i].operators.length === 0) {
+          cell3.innerHTML = "post niet gedekt !";
+          row.style.background = "red";
+      }
+  }
+
+  // Display extra information
   const extraInfo = document.getElementById("liextra");
   const extraContainer = document.getElementById("divextra");
+  extraInfo.innerHTML = ""; // Clear existing items
+  
+  for (let index = 0; index < day.extra.length; index++) {
+      let el = document.createElement("li");
+      el.innerHTML = day.extra[index];
+      extraInfo.appendChild(el);
+  }
+  
   if (day.extra.length > 0) {
-    day.extra.forEach(info => {
-      const listItem = document.createElement("li");
-      listItem.textContent = info;
-      extraInfo.appendChild(listItem);
-    });
-    extraContainer.style.display = "block";
+      extraContainer.style.display = "block";
+  } else {
+      extraContainer.style.display = "none";
   }
 }
-
 
 
 function storedUser() {
