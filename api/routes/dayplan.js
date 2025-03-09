@@ -1,4 +1,3 @@
-// api/routes/dayplan.js
 const express = require("express");
 const router = express.Router();
 const { getDB } = require("../utils/db");
@@ -31,7 +30,10 @@ router.post("/day-plan", authenticate, async (req, res) => {
 router.post("/dayplan", authenticate, async (req, res) => {
   try {
     const { dayplan, team, shift } = req.body;
-    console.log("Received dayplan:", JSON.stringify(dayplan, null, 2)); // Debug log
+    if (!dayplan || !team || !shift || !dayplan.stations) {
+      return res.status(400).json({ error: "Invalid dayplan data" });
+    }
+    console.log("Received dayplan:", JSON.stringify(dayplan, null, 2));
 
     const db = getDB();
     const teamDoc = await db.collection("teams").findOne({ teamName: team });
@@ -47,8 +49,8 @@ router.post("/dayplan", authenticate, async (req, res) => {
 
     // Update operator_history for each operator in the dayplan
     for (const dayStation of dayplan.stations) {
-      console.log("Processing dayStation:", dayStation); // Debug log
-      if (dayStation.operators) {
+      console.log("Processing dayStation:", dayStation);
+      if (dayStation.operators && Array.isArray(dayStation.operators)) {
         for (const operatorName of dayStation.operators) {
           const operator = shiftData.operators.find((op) => op.name === operatorName);
           if (operator && operator.number) {
@@ -61,25 +63,28 @@ router.post("/dayplan", authenticate, async (req, res) => {
               };
               shiftData.operator_history.push(historyEntry);
             }
-            // Remove existing occurrence of the station_number
-            const index = historyEntry.stations.indexOf(dayStation.station_number);
-            if (index !== -1) {
-              historyEntry.stations.splice(index, 1);
-              console.log(`Removed existing station ${dayStation.station_number} from history for ${operatorName}`);
-            }
-            // Push the new station_number
-            if (dayStation.station_number != null) {
-              historyEntry.stations.push(dayStation.station_number);
-              console.log(`Added station ${dayStation.station_number} to history for ${operatorName}`);
+            // Ensure stationNumber exists and is valid
+            const stationNumber = dayStation.stationNumber; // Match your DayStation model
+            if (stationNumber != null) {
+              // Remove existing occurrence if you don’t want duplicates
+              const index = historyEntry.stations.indexOf(stationNumber);
+              if (index !== -1) {
+                historyEntry.stations.splice(index, 1);
+                console.log(`Removed existing station ${stationNumber} from history for ${operatorName}`);
+              }
+              historyEntry.stations.push(stationNumber);
+              console.log(`Added station ${stationNumber} to history for ${operatorName}`);
             } else {
-              console.warn(`Skipping invalid station_number for ${operatorName}:`, dayStation.station_number);
+              console.warn(`Skipping invalid stationNumber for ${operatorName}:`, stationNumber);
             }
+          } else {
+            console.warn(`Operator ${operatorName} not found or missing number`);
           }
         }
       }
     }
 
-    // Update the team document with the new dayplan and updated operator_history
+    // Update the team document with the new dayplan and operator_history
     const result = await db.collection("teams").updateOne(
       { teamName: team, "shifts.name": shift },
       {
@@ -90,7 +95,7 @@ router.post("/dayplan", authenticate, async (req, res) => {
 
     if (result.modifiedCount === 0) return res.status(404).json({ message: "Team or shift not found" });
 
-    res.status(200).json({ message: "Dayplan submitted successfully" });
+    res.status(200).json({ message: "Dayplan submitted successfully", operator_history: shiftData.operator_history });
   } catch (error) {
     console.error("Error in /dayplan route:", error.message);
     if (error.message === "Database not initialized") {
@@ -123,7 +128,6 @@ async function findoperator(attendees, id, team, shift, db) {
     );
 
     const proposal = await proposaldayplan(id, stations_db, operators_db, shiftData.operator_history || [], team, shift);
-    console.log("Generated proposal:", proposal); // Debug log
     return proposal;
   } catch (error) {
     console.error("Error in findoperator:", error.message);
@@ -136,15 +140,7 @@ async function proposaldayplan(id, stations, attendees, op_history, team, shift)
   const dayExtra = [];
   const assignedOperators = [];
 
-  console.log("Operator history for this shift:", op_history); // Debug log for all attendees' history
-
-  // Map attendees to their history for further development
-  const attendeeHistory = attendees.reduce((acc, attendee) => {
-    const historyEntry = op_history.find((h) => h.name === attendee);
-    acc[attendee] = historyEntry ? historyEntry.stations : [];
-    console.log(`History for ${attendee}:`, acc[attendee]); // Log individual attendee history
-    return acc;
-  }, {});
+  console.log("Operator history for this shift:", op_history);
 
   for (let i = 0; i < stations.length; i++) {
     let operatorsNeeded = stations[i].requiredOperators;
@@ -163,7 +159,7 @@ async function proposaldayplan(id, stations, attendees, op_history, team, shift)
 
     dayStations.push(
       new DayStation(
-        stations[i].station_number,
+        stations[i].station_number, // Ensure this matches your model
         stations[i].station_name,
         operatorsForStation.length > 0 ? operatorsForStation : null,
         null,
