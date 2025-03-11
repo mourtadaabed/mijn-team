@@ -196,7 +196,7 @@ for (let i = 0; i < attendees.length; i++) {
 
 
 
-best_possibol_assighment(stations,new_operators,btc=0);
+finale_table_maker(stations,new_operators);
 
 
 /////////////////
@@ -268,12 +268,32 @@ function stat_hist_maker(stat, his) {
   return stat_hist;
 }
 
-function best_possibol_assighment(stat,oper,btc=0) {
-  console.log(stat);
-  console.log(oper);
-  console.log(btc);
+function finale_table_maker(stat, oper) {
+  const newstations = [];
+  console.log("*****************");
+  for (let i = 0; i < stat.length; i++) {
+    let newstat = {};
+    newstat["number"] = stat[i].station_number;
+    newstat["oper_req"] = stat[i].requiredOperators;
+    let possible_operators = {};
+    for (let j = 0; j < oper.length; j++) {
+        if (stat[i].station_number in oper[j].stat_hist) {
+          //console.log(stat[i].station_name, oper[j].operator_name, oper[j].stat_hist[stat[i].station_number]);
+          possible_operators[oper[j].operator_name] = oper[j].stat_hist[stat[i].station_number];                 
+      }
+    }
+
+    newstat["possible_operators"] = possible_operators;
+    newstations.push(newstat);
+  }
+  best_possible_assignment(newstations,0);
 }
 
+function best_possible_assignment(main_table,btc) {
 
+  console.log(btc);
+  console.log(main_table);
+  
+}
 
 module.exports = router;
