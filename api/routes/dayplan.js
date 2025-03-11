@@ -15,12 +15,27 @@ router.post("/day-plan", authenticate, async (req, res) => {
 
   try {
     const db = getDB();
+
+    // Check if the day id already exists
+    const teamDoc = await db.collection("teams").findOne({ teamName: team });
+    if (!teamDoc) return res.status(404).json({ error: "Team not found" });
+
+    const shiftData = teamDoc.shifts.find((s) => s.name === shift);
+    if (!shiftData) return res.status(404).json({ error: "Shift not found" });
+
+    const dayExists = shiftData.days.some((day) => day.id === id);
+    if (dayExists) {
+      return res.status(409).json({ error: `Day with ID ${id} already exists for this team and shift` });
+    }
+
     const dayPlan = await findoperator(attendees, id, team, shift, db);
     res.status(200).json(dayPlan);
   } catch (error) {
     console.error("Error generating day plan:", error.message);
     if (error.message === "Database not initialized") {
       res.status(503).json({ error: "Database unavailable, please try again later" });
+    } else if (error.message.includes("already exists")) {
+      res.status(409).json({ error: error.message });
     } else {
       res.status(500).json({ error: "Internal server error" });
     }
@@ -33,14 +48,19 @@ router.post("/dayplan", authenticate, async (req, res) => {
     if (!dayplan || !team || !shift || !dayplan.stations) {
       return res.status(400).json({ error: "Invalid dayplan data" });
     }
-    console.log("Received dayplan:", JSON.stringify(dayplan, null, 2));
-
+    
     const db = getDB();
     const teamDoc = await db.collection("teams").findOne({ teamName: team });
     if (!teamDoc) return res.status(404).json({ message: "Team not found" });
 
     const shiftData = teamDoc.shifts.find((s) => s.name === shift);
     if (!shiftData) return res.status(404).json({ message: "Shift not found" });
+
+    // Check if the day id already exists
+    const dayExists = shiftData.days.some((day) => day.id === dayplan.id);
+    if (dayExists) {
+      return res.status(409).json({ error: `Day with ID ${dayplan.id} already exists for this team and shift` });
+    }
 
     // Initialize operator_history if it doesn't exist
     if (!shiftData.operator_history) {
@@ -63,10 +83,8 @@ router.post("/dayplan", authenticate, async (req, res) => {
               };
               shiftData.operator_history.push(historyEntry);
             }
-            // Ensure stationNumber exists and is valid
-            const stationNumber = dayStation.stationNumber; // Match your DayStation model
+            const stationNumber = dayStation.stationNumber;
             if (stationNumber != null) {
-              // Remove existing occurrence if you don’t want duplicates
               const index = historyEntry.stations.indexOf(stationNumber);
               if (index !== -1) {
                 historyEntry.stations.splice(index, 1);
@@ -100,6 +118,8 @@ router.post("/dayplan", authenticate, async (req, res) => {
     console.error("Error in /dayplan route:", error.message);
     if (error.message === "Database not initialized") {
       res.status(503).json({ error: "Database unavailable, please try again later" });
+    } else if (error.message.includes("already exists")) {
+      res.status(409).json({ error: error.message });
     } else {
       res.status(500).json({ message: "Internal server error" });
     }
@@ -140,8 +160,46 @@ async function proposaldayplan(id, stations, attendees, op_history, team, shift)
   const dayExtra = [];
   const assignedOperators = [];
 
-  console.log("Operator history for this shift:", op_history);
 
+
+  //console.log(stations);
+  //console.log(attendees);
+  //console.log(op_history);
+  
+
+const new_operators = [];
+for (let i = 0; i < attendees.length; i++) {
+  
+  let find = false;
+    for (let j = 0; j < op_history.length; j++) {
+      if (attendees[i].name===op_history[j].name){
+        const stat_hist =  stat_hist_maker(attendees[i].stations,op_history[j].stations);
+        new_operators.push({"operator_name":attendees[i].name,
+          "operator_number":attendees[i].number,
+          stat_hist
+        });
+        find= true;
+        break;
+      }
+  }
+    if (!find){
+
+      const stat_hist =  stat_hist_maker(attendees[i].stations,[]);
+      new_operators.push({"operator_name":attendees[i].name,
+        "operator_number":attendees[i].number,
+        stat_hist
+    });
+  }
+
+}
+
+
+
+
+best_possibol_assighment(stations,new_operators,btc=0);
+
+
+/////////////////
   for (let i = 0; i < stations.length; i++) {
     let operatorsNeeded = stations[i].requiredOperators;
     const operatorsForStation = [];
@@ -159,7 +217,7 @@ async function proposaldayplan(id, stations, attendees, op_history, team, shift)
 
     dayStations.push(
       new DayStation(
-        stations[i].station_number, // Ensure this matches your model
+        stations[i].station_number,
         stations[i].station_name,
         operatorsForStation.length > 0 ? operatorsForStation : null,
         null,
@@ -174,8 +232,48 @@ async function proposaldayplan(id, stations, attendees, op_history, team, shift)
     }
   });
 
+/////////////////////
+
+
+
+
+
   const dayplan = new Day(id, dayStations, dayExtra);
   return dayplan;
 }
+
+
+function stat_hist_maker(stat, his) {
+  const stat_hist = {};
+  
+ 
+  for (let i = 0; i < stat.length; i++) {
+      if (!his.includes(stat[i])) {
+          stat_hist[stat[i]] = 0;
+      }
+  }
+  
+  
+  const hasElements = Object.keys(stat_hist).length > 0;
+  
+ 
+  for (let i = 0; i < his.length; i++) {
+      if (hasElements) {
+          stat_hist[his[i]] = i + 1;    
+      } else {
+          stat_hist[his[i]] = i;        
+      }
+  }
+  
+  return stat_hist;
+}
+
+function best_possibol_assighment(stat,oper,btc=0) {
+  console.log(stat);
+  console.log(oper);
+  console.log(btc);
+}
+
+
 
 module.exports = router;
