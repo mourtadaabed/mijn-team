@@ -188,7 +188,7 @@ async function proposaldayplan(id, stations, attendees, op_history, team, shift)
   // Step 2: Get the best assignment
   const bestassigmnt = finale_table_maker(stations, new_operators, attendees);
 
-  // Step 3: Use the best assignment to populate dayStations
+  // Step 3: Populate dayStations with assigned operators
   if (bestassigmnt.found && bestassigmnt.combo) {
     const assignmentMap = new Map();
     bestassigmnt.combo.forEach(assignment => {
@@ -196,43 +196,57 @@ async function proposaldayplan(id, stations, attendees, op_history, team, shift)
         assignmentMap.set(assignment.task, []);
       }
       assignmentMap.get(assignment.task).push(assignment.operator);
-      assignedOperators.push(assignment.operator); // Track assigned operators
+      assignedOperators.push(assignment.operator);
     });
 
-    // Build dayStations from stations and assignments
     for (let i = 0; i < stations.length; i++) {
       const stationNumber = stations[i].station_number;
-      const operatorsForStation = assignmentMap.get(stationNumber) || []; // Empty array if no assignment
+      const operatorsForStation = assignmentMap.get(stationNumber) || [];
       dayStations.push(
         new DayStation(
           stations[i].station_number,
           stations[i].station_name,
           operatorsForStation.length > 0 ? operatorsForStation : null,
-          null, // Assuming no additional data for now
+          "", // Initialize training as empty string
           stations[i].requiredOperators
         )
       );
     }
   } else {
     console.log("No valid assignment found; falling back to empty stations.");
-    // Fallback: Create DayStation objects with no operators
     for (let i = 0; i < stations.length; i++) {
       dayStations.push(
         new DayStation(
           stations[i].station_number,
           stations[i].station_name,
           null,
-          null,
+          "",
           stations[i].requiredOperators
         )
       );
     }
   }
 
-  // Step 4: Populate dayExtra with unassigned attendees
+  // Step 4: Assign unassigned operators to training in dayStations
+  console.log("Assigned Operators:", assignedOperators);
+  const trainedOperators = new Set(); // Track operators assigned to training
+
   attendees.forEach((attendee) => {
     if (!assignedOperators.includes(attendee.name)) {
-      dayExtra.push(attendee.name);
+      // Find a station the operator doesn't know and hasn't been used for training yet
+      const trainingStation = dayStations.find(station => 
+        !attendee.stations.includes(station.stationNumber) && 
+        station.training === "" // Only assign if training slot is empty
+      );
+      if (trainingStation) {
+        trainingStation.training = attendee.name; // Assign to training field
+        trainedOperators.add(attendee.name);
+        console.log(`Assigned ${attendee.name} to train on ${trainingStation.stationName}`);
+      } else {
+        // No suitable training station available, add to dayExtra
+        dayExtra.push(attendee.name);
+        console.log(`No training station for ${attendee.name}; added to dayExtra`);
+      }
     }
   });
 
@@ -383,7 +397,6 @@ function find_best_assignment(main_table, initialBtc = 0, attendees = []) {
     btc += 1;
   }
 }
-
 
 
 module.exports = router;
