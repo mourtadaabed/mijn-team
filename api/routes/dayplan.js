@@ -154,121 +154,113 @@ async function findoperator(attendees, id, team, shift, db) {
     throw error;
   }
 }
-
 async function proposaldayplan(id, stations, attendees, op_history, team, shift) {
   const dayStations = [];
   const dayExtra = [];
   const assignedOperators = [];
 
-
-
-  //console.log(stations);
-  //console.log(attendees);
-  //console.log(op_history);
-  
-
-const new_operators = [];
-for (let i = 0; i < attendees.length; i++) {
-  
-  let find = false;
+  // Step 1: Create new_operators with stat_hist
+  const new_operators = [];
+  for (let i = 0; i < attendees.length; i++) {
+    let find = false;
     for (let j = 0; j < op_history.length; j++) {
-      if (attendees[i].name===op_history[j].name){
-        const stat_hist =  stat_hist_maker(attendees[i].stations,op_history[j].stations);
-        new_operators.push({"operator_name":attendees[i].name,
-          "operator_number":attendees[i].number,
+      if (attendees[i].name === op_history[j].name) {
+        const stat_hist = stat_hist_maker(attendees[i].stations, op_history[j].stations);
+        new_operators.push({
+          "operator_name": attendees[i].name,
+          "operator_number": attendees[i].number,
           stat_hist
         });
-        find= true;
+        find = true;
         break;
       }
-  }
-    if (!find){
-
-      const stat_hist =  stat_hist_maker(attendees[i].stations,[]);
-      new_operators.push({"operator_name":attendees[i].name,
-        "operator_number":attendees[i].number,
-        stat_hist
-    });
-  }
-
-}
-
-
-
-
-finale_table_maker(stations,new_operators,attendees);
-
-
-/////////////////
-  for (let i = 0; i < stations.length; i++) {
-    let operatorsNeeded = stations[i].requiredOperators;
-    const operatorsForStation = [];
-
-    for (let j = 0; j < attendees.length && operatorsNeeded > 0; j++) {
-      if (
-        attendees[j].stations.includes(stations[i].station_number) &&
-        !assignedOperators.includes(attendees[j].name)
-      ) {
-        operatorsForStation.push(attendees[j].name);
-        assignedOperators.push(attendees[j].name);
-        operatorsNeeded--;
-      }
     }
-
-    dayStations.push(
-      new DayStation(
-        stations[i].station_number,
-        stations[i].station_name,
-        operatorsForStation.length > 0 ? operatorsForStation : null,
-        null,
-        stations[i].requiredOperators
-      )
-    );
+    if (!find) {
+      const stat_hist = stat_hist_maker(attendees[i].stations, []);
+      new_operators.push({
+        "operator_name": attendees[i].name,
+        "operator_number": attendees[i].number,
+        stat_hist
+      });
+    }
   }
 
+  // Step 2: Get the best assignment
+  const bestassigmnt = finale_table_maker(stations, new_operators, attendees);
+
+  // Step 3: Use the best assignment to populate dayStations
+  if (bestassigmnt.found && bestassigmnt.combo) {
+    const assignmentMap = new Map();
+    bestassigmnt.combo.forEach(assignment => {
+      if (!assignmentMap.has(assignment.task)) {
+        assignmentMap.set(assignment.task, []);
+      }
+      assignmentMap.get(assignment.task).push(assignment.operator);
+      assignedOperators.push(assignment.operator); // Track assigned operators
+    });
+
+    // Build dayStations from stations and assignments
+    for (let i = 0; i < stations.length; i++) {
+      const stationNumber = stations[i].station_number;
+      const operatorsForStation = assignmentMap.get(stationNumber) || []; // Empty array if no assignment
+      dayStations.push(
+        new DayStation(
+          stations[i].station_number,
+          stations[i].station_name,
+          operatorsForStation.length > 0 ? operatorsForStation : null,
+          null, // Assuming no additional data for now
+          stations[i].requiredOperators
+        )
+      );
+    }
+  } else {
+    console.log("No valid assignment found; falling back to empty stations.");
+    // Fallback: Create DayStation objects with no operators
+    for (let i = 0; i < stations.length; i++) {
+      dayStations.push(
+        new DayStation(
+          stations[i].station_number,
+          stations[i].station_name,
+          null,
+          null,
+          stations[i].requiredOperators
+        )
+      );
+    }
+  }
+
+  // Step 4: Populate dayExtra with unassigned attendees
   attendees.forEach((attendee) => {
     if (!assignedOperators.includes(attendee.name)) {
       dayExtra.push(attendee.name);
     }
   });
 
-/////////////////////
-
-
-
-
-
+  // Step 5: Return the Day object
   const dayplan = new Day(id, dayStations, dayExtra);
   return dayplan;
 }
 
-
+// Supporting functions (unchanged)
 function stat_hist_maker(stat, his) {
   const stat_hist = {};
-  
- 
   for (let i = 0; i < stat.length; i++) {
-      if (!his.includes(stat[i])) {
-          stat_hist[stat[i]] = 0;
-      }
+    if (!his.includes(stat[i])) {
+      stat_hist[stat[i]] = 0;
+    }
   }
-  
-  
   const hasElements = Object.keys(stat_hist).length > 0;
-  
- 
   for (let i = 0; i < his.length; i++) {
-      if (hasElements) {
-          stat_hist[his[i]] = i + 1;    
-      } else {
-          stat_hist[his[i]] = i;        
-      }
+    if (hasElements) {
+      stat_hist[his[i]] = i + 1;
+    } else {
+      stat_hist[his[i]] = i;
+    }
   }
-  
   return stat_hist;
 }
 
-function finale_table_maker(stat, oper,attendees) {
+function finale_table_maker(stat, oper, attendees) {
   const newstations = [];
   console.log("*****************");
   for (let i = 0; i < stat.length; i++) {
@@ -277,59 +269,46 @@ function finale_table_maker(stat, oper,attendees) {
     newstat["oper_req"] = stat[i].requiredOperators;
     let possible_operators = {};
     for (let j = 0; j < oper.length; j++) {
-        if (stat[i].station_number in oper[j].stat_hist) {
-          //console.log(stat[i].station_name, oper[j].operator_name, oper[j].stat_hist[stat[i].station_number]);
-          possible_operators[oper[j].operator_name] = oper[j].stat_hist[stat[i].station_number];                 
+      if (stat[i].station_number in oper[j].stat_hist) {
+        possible_operators[oper[j].operator_name] = oper[j].stat_hist[stat[i].station_number];
       }
     }
-
     newstat["possible_operators"] = possible_operators;
     newstations.push(newstat);
   }
-  find_best_assignment(newstations,0,attendees);
+  return find_best_assignment(newstations, 0, attendees);
 }
 
 function best_possible_assignment(main_table, btc, attendees) {
-  //console.log("Main Table:", main_table);
   console.log(`Trying with btc = ${btc}`);
-
-  // Step 1: Extract operators and check operator count
   const taskOperators = main_table.map(task => {
     const operators = Object.entries(task.possible_operators)
       .map(([name, cost]) => ({ name, cost: parseInt(cost) }));
     return { number: task.number, oper_req: parseInt(task.oper_req), operators };
   });
 
-  // Calculate total required operators
   const totalRequiredOperators = taskOperators.reduce((sum, task) => sum + task.oper_req, 0);
-  
-  // Get unique operators across all tasks
   const allOperators = new Set();
   taskOperators.forEach(task => {
     task.operators.forEach(op => allOperators.add(op.name));
   });
   console.log(`Total required operators: ${totalRequiredOperators}, Unique operators available: ${allOperators.size}`);
 
-  // Adjust last task if not enough operators
   let adjustedTaskOperators = [...taskOperators];
   if (allOperators.size < totalRequiredOperators) {
     console.log("Not enough operators; leaving last task unassigned.");
     const lastTask = adjustedTaskOperators[adjustedTaskOperators.length - 1];
-    lastTask.oper_req = 0; // Treat last task as requiring 0 operators
+    lastTask.oper_req = 0;
   }
 
-  // Step 2: Generator function with uniqueness and pruning
   function* generateCombinations(tasks, currentCombo = [], taskIndex = 0, currentCost = 0, usedOperators = new Set()) {
     if (currentCost > btc) return;
-
     if (taskIndex === tasks.length) {
       yield currentCombo;
       return;
     }
-
     const task = tasks[taskIndex];
     if (task.oper_req === 0) {
-      // Skip assignment for this task (e.g., last task if adjusted)
       yield* generateCombinations(tasks, currentCombo, taskIndex + 1, currentCost, usedOperators);
     } else if (task.oper_req === 1) {
       for (let op of task.operators) {
@@ -366,7 +345,6 @@ function best_possible_assignment(main_table, btc, attendees) {
     }
   }
 
-  // Step 3: Iterate and find a combination
   const combinationIterator = generateCombinations(adjustedTaskOperators);
   let index = 1;
   let found = false;
@@ -381,7 +359,6 @@ function best_possible_assignment(main_table, btc, attendees) {
       combo.forEach(assignment => {
         console.log(`  Task ${assignment.task}: ${assignment.operator} (Cost: ${assignment.cost})`);
       });
-      // If last task was skipped, note it
       if (adjustedTaskOperators[adjustedTaskOperators.length - 1].oper_req === 0) {
         console.log(`  Task ${adjustedTaskOperators[adjustedTaskOperators.length - 1].number}: None (Cost: 0)`);
       }
@@ -396,7 +373,6 @@ function best_possible_assignment(main_table, btc, attendees) {
   return { found, combo: resultCombo, totalCost: found ? btc : null };
 }
 
-// Wrapper function to increment btc until a combination is found
 function find_best_assignment(main_table, initialBtc = 0, attendees = []) {
   let btc = initialBtc;
   while (true) {
@@ -407,7 +383,6 @@ function find_best_assignment(main_table, initialBtc = 0, attendees = []) {
     btc += 1;
   }
 }
-
 
 
 
