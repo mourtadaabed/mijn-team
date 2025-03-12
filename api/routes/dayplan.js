@@ -196,7 +196,7 @@ for (let i = 0; i < attendees.length; i++) {
 
 
 
-finale_table_maker(stations,new_operators);
+finale_table_maker(stations,new_operators,attendees);
 
 
 /////////////////
@@ -268,7 +268,7 @@ function stat_hist_maker(stat, his) {
   return stat_hist;
 }
 
-function finale_table_maker(stat, oper) {
+function finale_table_maker(stat, oper,attendees) {
   const newstations = [];
   console.log("*****************");
   for (let i = 0; i < stat.length; i++) {
@@ -286,14 +286,129 @@ function finale_table_maker(stat, oper) {
     newstat["possible_operators"] = possible_operators;
     newstations.push(newstat);
   }
-  best_possible_assignment(newstations,0);
+  find_best_assignment(newstations,0,attendees);
 }
 
-function best_possible_assignment(main_table,btc) {
+function best_possible_assignment(main_table, btc, attendees) {
+  //console.log("Main Table:", main_table);
+  console.log(`Trying with btc = ${btc}`);
 
-  console.log(btc);
-  console.log(main_table);
+  // Step 1: Extract operators and check operator count
+  const taskOperators = main_table.map(task => {
+    const operators = Object.entries(task.possible_operators)
+      .map(([name, cost]) => ({ name, cost: parseInt(cost) }));
+    return { number: task.number, oper_req: parseInt(task.oper_req), operators };
+  });
+
+  // Calculate total required operators
+  const totalRequiredOperators = taskOperators.reduce((sum, task) => sum + task.oper_req, 0);
   
+  // Get unique operators across all tasks
+  const allOperators = new Set();
+  taskOperators.forEach(task => {
+    task.operators.forEach(op => allOperators.add(op.name));
+  });
+  console.log(`Total required operators: ${totalRequiredOperators}, Unique operators available: ${allOperators.size}`);
+
+  // Adjust last task if not enough operators
+  let adjustedTaskOperators = [...taskOperators];
+  if (allOperators.size < totalRequiredOperators) {
+    console.log("Not enough operators; leaving last task unassigned.");
+    const lastTask = adjustedTaskOperators[adjustedTaskOperators.length - 1];
+    lastTask.oper_req = 0; // Treat last task as requiring 0 operators
+  }
+
+  // Step 2: Generator function with uniqueness and pruning
+  function* generateCombinations(tasks, currentCombo = [], taskIndex = 0, currentCost = 0, usedOperators = new Set()) {
+    if (currentCost > btc) return;
+
+    if (taskIndex === tasks.length) {
+      yield currentCombo;
+      return;
+    }
+
+    const task = tasks[taskIndex];
+    if (task.oper_req === 0) {
+      // Skip assignment for this task (e.g., last task if adjusted)
+      yield* generateCombinations(tasks, currentCombo, taskIndex + 1, currentCost, usedOperators);
+    } else if (task.oper_req === 1) {
+      for (let op of task.operators) {
+        if (!usedOperators.has(op.name)) {
+          const newCost = currentCost + op.cost;
+          if (newCost <= btc) {
+            const newCombo = [...currentCombo, { task: task.number, operator: op.name, cost: op.cost }];
+            const newUsedOperators = new Set(usedOperators).add(op.name);
+            yield* generateCombinations(tasks, newCombo, taskIndex + 1, newCost, newUsedOperators);
+          }
+        }
+      }
+    } else if (task.oper_req === 2) {
+      for (let i = 0; i < task.operators.length; i++) {
+        for (let j = 0; j < task.operators.length; j++) {
+          const op1 = task.operators[i];
+          const op2 = task.operators[j];
+          if (i !== j && !usedOperators.has(op1.name) && !usedOperators.has(op2.name)) {
+            const newCost = currentCost + op1.cost + op2.cost;
+            if (newCost <= btc) {
+              const newCombo = [
+                ...currentCombo,
+                { task: task.number, operator: op1.name, cost: op1.cost },
+                { task: task.number, operator: op2.name, cost: op2.cost }
+              ];
+              const newUsedOperators = new Set(usedOperators);
+              newUsedOperators.add(op1.name);
+              newUsedOperators.add(op2.name);
+              yield* generateCombinations(tasks, newCombo, taskIndex + 1, newCost, newUsedOperators);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Step 3: Iterate and find a combination
+  const combinationIterator = generateCombinations(adjustedTaskOperators);
+  let index = 1;
+  let found = false;
+  let resultCombo = null;
+
+  for (let combo of combinationIterator) {
+    const totalCost = combo.reduce((sum, assignment) => sum + assignment.cost, 0);
+    if (totalCost === btc) {
+      found = true;
+      resultCombo = combo;
+      console.log(`Combination ${index} (Found with btc = ${btc}):`);
+      combo.forEach(assignment => {
+        console.log(`  Task ${assignment.task}: ${assignment.operator} (Cost: ${assignment.cost})`);
+      });
+      // If last task was skipped, note it
+      if (adjustedTaskOperators[adjustedTaskOperators.length - 1].oper_req === 0) {
+        console.log(`  Task ${adjustedTaskOperators[adjustedTaskOperators.length - 1].number}: None (Cost: 0)`);
+      }
+      console.log(`  Total Cost: ${totalCost}`);
+      console.log('---');
+      break;
+    }
+    index++;
+  }
+
+  if (!found) console.log(`No combination found for btc = ${btc}`);
+  return { found, combo: resultCombo, totalCost: found ? btc : null };
 }
+
+// Wrapper function to increment btc until a combination is found
+function find_best_assignment(main_table, initialBtc = 0, attendees = []) {
+  let btc = initialBtc;
+  while (true) {
+    const result = best_possible_assignment(main_table, btc, attendees);
+    if (result.found) {
+      return result;
+    }
+    btc += 1;
+  }
+}
+
+
+
 
 module.exports = router;
