@@ -10,7 +10,8 @@ async function connectDB() {
     if (!uri) throw new Error("MONGODB_URI is not defined");
     console.log("Attempting to connect to MongoDB...");
     const client = await MongoClient.connect(uri);
-    db = client.db(); // Add your DB name if needed, e.g., client.db("team")
+    db = client.db("teamsDB"); 
+
     console.log("Connected to MongoDB Atlas");
     return db;
   } catch (err) {
