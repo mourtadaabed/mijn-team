@@ -46,7 +46,7 @@ async function initializeTable(teamName, shiftName) {
      drawtable(); // Call drawtable with operators
   } catch (error) {
       console.error('Failed to fetch data:', error);
-      alert('Could not load operators or stations. Please try again.');
+      console.log('Could not load operators or stations. Please try again.');
   }
 }
 

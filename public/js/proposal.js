@@ -50,7 +50,7 @@ fetchOperators(team_name, shift_name)
   })
   .catch((error) => {
     console.error("Failed to fetch operators:", error);
-    alert("Failed to load operators. Please try again later.");
+    console.log("Failed to load operators. Please try again later.");
   });
 
 async function fetchOperators(teamName, shiftName) {
@@ -209,7 +209,7 @@ async function fetchAttendees(id, attendees, team, shift) {
     if (!response.ok) {
       const errorData = await response.json();
       if (response.status === 409) {
-        alert(`Error: ${errorData.error}`); // Show error if ID already exists
+        console.log(`Error: ${errorData.error}`); // Show error if ID already exists
         document.getElementById("proposal-div").style.display = "none";
         document.getElementById("aan_div").style.display = "block";
         return;
@@ -225,7 +225,7 @@ async function fetchAttendees(id, attendees, team, shift) {
     return { original: dayplan, copy: copyday };
   } catch (error) {
     console.error("Error fetching attendees:", error);
-    alert("An error occurred while fetching the day plan. Please try again.");
+    console.log("An error occurred while fetching the day plan. Please try again.");
     throw error;
   }
 }
@@ -413,7 +413,7 @@ async function bevestigen() {
     window.location.href = "/";
   } catch (error) {
     console.error("Error in bevestigen:", error);
-    alert("An error occurred while saving the day plan. Please try again.");
+    console.log("An error occurred while saving the day plan. Please try again.");
   }
 }
 
@@ -432,7 +432,7 @@ async function fetchDayplan(dp, team, shift) {
     if (!response.ok) {
       const errorData = await response.json();
       if (response.status === 409) {
-        alert(`Error: ${errorData.error}`); // Show error if ID already exists
+        console.log(`Error: ${errorData.error}`); // Show error if ID already exists
         return;
       }
       throw new Error(`HTTP error! Status: ${response.status} - ${errorData.message}`);

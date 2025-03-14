@@ -10,6 +10,7 @@ user_team.innerText="For Team: "+teamname;
 current_user.innerText="current user: "+user;
 
 
+
 // Add event listener to cancel button
 cancelButton.addEventListener("click", function () {
     // Clear the form inputs
@@ -17,11 +18,7 @@ cancelButton.addEventListener("click", function () {
 
     // Show a confirmation message
     console.log("Form has been reset.");
-    if (document.referrer) {
-        window.location.href = document.referrer; 
-    } else {
-         window.location.href = "/";
-    }
+    window.location.href = "/";
 
 
 });

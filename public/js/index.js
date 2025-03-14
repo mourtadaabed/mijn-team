@@ -74,11 +74,11 @@ async function fetchTeams() {
             populateTeams(teams); // Populate the datalist with fetched teams
         } else {
             const errorData = await response.json(); // Try to get error details
-            alert(`Error fetching teams: ${errorData.error || 'Unknown error'}`);
+            console.log(`Error fetching teams: ${errorData.error || 'Unknown error'}`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred while fetching the teams.');
+        console.log('An error occurred while fetching the teams.');
     }
 
 }
@@ -138,11 +138,11 @@ async function fetchDaysOfTeam(teamName, shiftName) {
       populateDays(days,teamName,shiftName); // Populate the datalist with fetched days
     } else {
       const errorData = await response.json(); // Try to get error details
-      alert(`Error fetching days: ${errorData.message || 'Unknown error'}`);
+      console.log(`Error fetching days: ${errorData.message || 'Unknown error'}`);
     }
   } catch (error) {
     console.error('Error:', error);
-    alert(`An error occurred while fetching the days: ${error.message}`);
+    console.log(`An error occurred while fetching the days: ${error.message}`);
   }
 }
 
@@ -194,11 +194,11 @@ async function fetchOneDay(day_id, teamName, shiftName) {
       drawTable(dayData);
     } else {
       const errorData = await response.json();
-      alert(`Error fetching day: ${errorData.message || 'Unknown error'}`);
+      console.log(`Error fetching day: ${errorData.message || 'Unknown error'}`);
     }
   } catch (error) {
     console.error('Error:', error);
-    alert(`An error occurred while fetching the day: ${error.message}`);
+    console.log(`An error occurred while fetching the day: ${error.message}`);
   }
 }
 

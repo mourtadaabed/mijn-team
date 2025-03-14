@@ -9,40 +9,38 @@
 <body>
     <h1>Creating New Team</h1>
     <form id="teamForm">
-        <!-- Admin Input -->
-        <label for="admin">Admin:</label>
-        <input type="text" id="admin" name="admin" required>
-        <br><br>
-
-        <!-- Team Name Input -->
+        <!-- New User Fields (hidden for logged-in users) -->
+        <div id="newUserFields">
+            <label for="admin">Admin:</label>
+            <input type="text" id="admin" name="admin" required>
+            <br><br>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <br><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <br><br>
+        </div>
+        <!-- User Info (shown for logged-in users) -->
+        <div id="userInfo" style="display: none;">
+            <label>Current User:</label>
+            <span id="current_user"></span>
+            <br><br>
+            <label>Current Team:</label>
+            <span id="user_team"></span>
+            <br><br>
+        </div>
+        <!-- Team and Shift Fields (always visible) -->
         <label for="teamname">Team Name:</label>
         <input type="text" id="teamname" name="teamname" required>
         <br><br>
-
-        <!-- shift name  -->
         <label for="shift">Shift Name:</label>
         <input type="text" id="shift" name="shift" required>
         <br><br>
-
-        <!-- Email Input -->
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <br><br>
-
-
-        <!-- Password Input -->
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br><br>
-
-        <!-- Submit Button -->
         <button type="submit">Create Team</button>
         <hr>
-        <button id="cancel">Cancel</button>
+        <button type="button" id="cancel">Cancel</button>
     </form>
-
-
-
-    <script type="text/javascript" src="js/newteam.js" ></script>
+    <script type="text/javascript" src="js/newteam.js"></script>
 </body>
 </html>
