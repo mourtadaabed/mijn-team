@@ -1,8 +1,8 @@
 class User {
-    constructor(name, email, hashedPassword,team,shift,rol="user") {
+    constructor(name, email, hashedPassword,team,shift,role="user") {
         this.name = name;
         this.email = email;
-
+        this.role = role;
         this.team_shifts = [team+"-"+shift];
         this.password = hashedPassword; // Store hashed password
     }

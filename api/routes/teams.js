@@ -50,49 +50,34 @@ router.post("/createTeam", async (req, res) => {
 
   try {
     const db = getDB();
-    const normalizedAdmin = admin.trim().toLowerCase(); // Normalize username
+    const normalizedAdmin = admin.trim().toLowerCase();
     const teamShiftKey = `${teamname}-${shift}`;
 
-    // Check if team already exists
     const existingTeam = await db.collection("teams").findOne({ teamName: teamname });
     if (existingTeam) {
       return res.status(400).json({ success: false, message: `Team '${teamname}' exists` });
     }
 
-    // Check if user already exists
-    let existingUser = await db.collection("users").findOne({
+    const existingUser = await db.collection("users").findOne({
       name: { $regex: new RegExp(`^${normalizedAdmin}$`, "i") },
     });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
     if (existingUser) {
-      // User exists, add the team-shift if not already present
-      if (!existingUser.team_shifts.includes(teamShiftKey)) {
-        await db.collection("users").updateOne(
-          { _id: existingUser._id },
-          { $addToSet: { team_shifts: teamShiftKey } }
-        );
-      }
-    } else {
-      // User doesn't exist, create a new one
-      const newUser = new User(normalizedAdmin, email, hashedPassword, teamname, shift);
-      await db.collection("users").insertOne({
-        name: normalizedAdmin,
-        email,
-        password: hashedPassword,
-        team_shifts: [teamShiftKey],
+      return res.status(400).json({
+        success: false,
+        message: "User already exists. Use /createTeamForExistingUser if authenticated.",
       });
     }
 
-    // Create the new team
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User(normalizedAdmin, email, hashedPassword, teamname, shift, "admin"); // Set role to admin
     const newTeam = new Team(teamname, shift);
+
+    await db.collection("users").insertOne(newUser); // Insert the User instance directly
     await db.collection("teams").insertOne(newTeam);
 
-    res.json({
+    res.status(201).json({
       success: true,
-      message: existingUser
-        ? `Team '${teamname}' created and added to existing user`
-        : `Team '${teamname}' and new user created`,
+      message: `Team '${teamname}' and new admin user created`,
       team: newTeam,
     });
   } catch (error) {
@@ -208,6 +193,8 @@ router.post("/newShift", authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
+
 router.post("/createTeamForExistingUser", authenticate, async (req, res) => {
   const { username, teamname, shiftname } = req.body;
   if (!username || !teamname || !shiftname) {
@@ -231,19 +218,21 @@ router.post("/createTeamForExistingUser", authenticate, async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    if (!existingUser.team_shifts.includes(teamShiftKey)) {
-      await db.collection("users").updateOne(
-        { _id: existingUser._id },
-        { $addToSet: { team_shifts: teamShiftKey } }
-      );
-    }
+    // Update user with new team-shift and set role to admin
+    await db.collection("users").updateOne(
+      { _id: existingUser._id },
+      {
+        $addToSet: { team_shifts: teamShiftKey },
+        $set: { role: "admin" }, // Update role to admin
+      }
+    );
 
     const newTeam = new Team(teamname, shiftname);
     await db.collection("teams").insertOne(newTeam);
 
     res.status(201).json({
       success: true,
-      message: `Team '${teamname}' created and added to existing user`,
+      message: `Team '${teamname}' created and user set as admin`,
       team: newTeam,
     });
   } catch (error) {

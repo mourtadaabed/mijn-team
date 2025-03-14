@@ -95,7 +95,7 @@ async function checkAuth() {
         .then(data => {
           if (data.success) {
             document.getElementById('teamForm').reset();
-            window.location.href = '/dashboard';
+            window.location.href = '/';
           } else {
             alert('Error creating team: ' + data.message);
           }
