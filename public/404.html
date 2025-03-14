@@ -4,24 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error</title>
-    <link rel="stylesheet" href="css/404.css"> 
-    
+    <link rel="stylesheet" href="/css/404.css">
 </head>
 <body>
   <div id="menu">
-    <a href="/operators"class="w">Operators</a>
-    <a href="/"id="r"class="w">Home</a>
-    <a href="/workstations"class="w">workstations</a>
-    <a href="/proposal"class="w">New Plan</a>
-    <a href="/newuser"class="w">New User</a>
-    <a href="/newshift"class="w">New Shift</a>
-
-  </div>   
-<div id="content">
-  <h1>Error 404 </h1>
-  <h1>Page not found</h1>
-</div>
-
-    <script type="text/javascript" src="js/404.js"></script>   
+    <a href="/operators" class="w">Operators</a>
+    <a href="/" id="r" class="w">Home</a>
+    <a href="/workstations" class="w">Workstations</a>
+    <a href="/newteam" class="w" id="n-t">New Team</a>
+  </div>
+  <hr>
+  <div id="admin_menu" style="display: none;">
+    <a href="/newuser" class="w">User's</a>
+    <a href="/newshift" class="w">Shift's</a>
+  </div>
+  <!-- New Plan Button -->
+  <div id="new_plan_button" style="display: none;">
+    <button class="big-button">New Plan</button>
+    <hr>
+  </div>
+  <div id="content">
+    <h1>Error 404</h1>
+    <h1>Page not found</h1>
+  </div>
+  <hr style="width:70%" id="lh">
+  <div id="user_team" style="display: none;">
+    Welkom: <span id="usernameDisplay"></span>, Your Team is: <span id="teamname"></span>
+  </div>
+  <div class="log">
+    <input type="button" id="login" value="Aanmelden">
+  </div>
+  <script type="text/javascript" src="/js/404.js"></script>
 </body>
 </html>

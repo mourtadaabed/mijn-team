@@ -1,83 +1,85 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <link rel="stylesheet" href="css/operators.css">
+<head>
+    <link rel="stylesheet" href="/css/operators.css">
     <meta charset="utf-8">
-    <title>operators</title>
-  </head>
-  <body>
-    <div id = "background">
-    <div class="menu">
-      <a href="/operators"class="o">operators</a>
-      <a href="/"class="r">Home</a>
-      <a href="/workstations"class="w">workstations</a>
-      <a href="/proposal"class="w">New Plan</a>
-      <a href="/newuser"class="w">new user</a>
-      <a href="/newshift"class="w">New Shift</a>
-      <a href="/newteam" class="w" id="n-t">New Team</a>
-      <HR>
-    </div>      
-
-
-        <div class="menu2">
-          <input id="bt-res" type="button" value="Reserves">
-          <input id="bt-tea" type="button" value="teamleden">
-          <input id="bt-all" type="button" value="all">
-          <input id="bt-job" type="button" value="jobsudenten">
+    <title>Operators</title>
+</head>
+<body>
+    <div id="background">
+        <div id="menu">
+            <a href="/" id="r" class="w">Home</a>
+            <a href="/workstations" class="w">Workstations</a>
+            <a href="/newteam" class="w" id="n-t">New Team</a>
+        </div>
+        <hr>
+        <div id="admin_menu" style="display: none;">
+            <a href="/newuser" class="w">User's</a>
+            <a href="/newshift" class="w">Shift's</a>
         </div>
 
-        
-      <table  id="maintable">
-        <tr>
-          <th rowspan="2" >operator </th>
-          <th colspan="10">Workstations</th>
-        </tr>
-      </table>
+        <!-- New Plan Button -->
+        <div id="new_plan_button" style="display: none;">
+            <button class="big-button">New Plan</button>
+            <hr>
+        </div>
 
-  <div id="addingoperator_div">
-    <h3>Adding Or Editing Operator</h3>
-    <hr>
-    <form id = "newoperator">
-      <label for="number">Number</label>
-      <input id="number"name="number"type="number">
-      <label for="name">Name</label>
-      <input id="name"name="name"type="text">
-      <label for="rol">Rol</label>
-      <select name="rol" id="rol">
-        <option value="teammember">teammember</option>
-        <option value="reserve">Reserve</option>
-        <option value="jobstudent">Jobstudent</option>
-      </select>
-      <br><br>
-      <input type="submit" value="add">
-    </form>
-  </div>
+        <div class="menu2">
+            <input id="bt-res" type="button" value="Reserves">
+            <input id="bt-tea" type="button" value="Teamleden">
+            <input id="bt-all" type="button" value="All">
+            <input id="bt-job" type="button" value="Jobstudenten">
+        </div>
 
-  <div id="modify_div">
-    <h3>Editing Operator</h3>
+        <table id="maintable">
+            <tr>
+                <th rowspan="2">Operator</th>
+                <th colspan="10">Workstations</th>
+            </tr>
+        </table>
 
-    <form id = "oldoperator">
-      <p id="oldname_p"><span id="oldname_s"></span><span id="oldrol_s"></span><span id="oldnumber_s"></span></p>
-      <label for="newname">New Name</label>
-      <input id="newname"name="name"type="text">
-      <label for="newrol">Rol</label>
-      <select name="rol" id="newrol">
-        <option value="teammeber">teammeber</option>
-        <option value="reserve">Reserve</option>
-        <option value="jobstudent">Jobstudent</option>
-      </select>
-      <br><br>
-      <input type="submit" value="update">
-    </form>
-  </div>
-  <hr>
-  <div id="user_team">Welkom: <span id="username"></span> , Your Team is: <span id="teamname"></span></div>
-  <div class="log">
-    ​<input type="button" id="logout" onclick="logout()" value="uitloggen">
-  </div>
+        <div id="addingoperator_div">
+            <h3>Adding Or Editing Operator</h3>
+            <hr>
+            <form id="newoperator">
+                <label for="number">Number</label>
+                <input id="number" name="number" type="number">
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text">
+                <label for="rol">Rol</label>
+                <select name="rol" id="rol">
+                    <option value="teammember">Teammember</option>
+                    <option value="reserve">Reserve</option>
+                    <option value="jobstudent">Jobstudent</option>
+                </select>
+                <br><br>
+                <input type="submit" value="Add">
+            </form>
+        </div>
 
-</div> 
+        <div id="modify_div">
+            <h3>Editing Operator</h3>
+            <form id="oldoperator">
+                <p id="oldname_p"><span id="oldname_s"></span><span id="oldrol_s"></span><span id="oldnumber_s"></span></p>
+                <label for="newname">New Name</label>
+                <input id="newname" name="name" type="text">
+                <label for="newrol">Rol</label>
+                <select name="rol" id="newrol">
+                    <option value="teammember">Teammember</option>
+                    <option value="reserve">Reserve</option>
+                    <option value="jobstudent">Jobstudent</option>
+                </select>
+                <br><br>
+                <input type="submit" value="Update">
+            </form>
+        </div>
+        <hr>
+        <div id="user_team">Welkom: <span id="username"></span>, Your Team is: <span id="teamname"></span></div>
+        <div class="log">
+            <input type="button" id="logout" value="Uitloggen">
+        </div>
+    </div>
 
-    <script  src="js/operators.js"></script>
-  </body>
+    <script src="/js/operators.js"></script>
+</body>
 </html>

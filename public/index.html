@@ -7,23 +7,27 @@
   </head>
   <body>
     <div id="newteam">
-      <a href="/newteam" id="n-t">Creat Your Own Team</a>
+      <a href="/newteam" id="n-t">Create Your Own Team</a>
     </div>
 
     <div id="menu">
       <a href="/operators" class="w">Operators</a>
-      <a href="/" id="r" class="w">Home</a>
-      <a href="/workstations" class="w">workstations</a>
-      <a href="/proposal" class="w">New Plan</a>
-      <a href="/newuser" class="w">New User</a>
-      <a href="/newshift" class="w">New Shift</a>
+      <a href="/workstations" class="w">Workstations</a>
       <a href="/newteam" class="w" id="n-t">New Team</a>
     </div>
 
     <HR style="width:70%">
 
+    <div id="admin_menu">
+      <a href="/newuser" class="w">User's</a>
+      <a href="/newshift" class="w">Shift's</a>
+    </div>
 
-
+    <!-- New Plan Button -->
+    <div id="new_plan_button">
+      <button class="big-button">New Plan</button>
+      <hr>
+    </div>
 
     <h2 id="team_name"></h2>
     <h3 id="date"></h3>
@@ -44,8 +48,6 @@
       <!-- Options populated by fetchTeams -->
     </datalist>
 
-
-
     <input list="days" id="dayInput" name="day" placeholder="Select a day">
     <datalist id="days">
       <!-- Options populated fetchdays -->
@@ -61,7 +63,6 @@
     <div class="log">
       <input type="button" id="login" value="Aanmelden">
     </div>
-
 
     <script type="text/javascript" src="/js/index.js"></script>
   </body>

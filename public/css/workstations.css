@@ -117,3 +117,44 @@ font-weight:bold;
 #edit-station_div{
   display: none;
 }
+/* Admin Menu and New Plan Button Styling */
+#admin_menu {
+  display: none; /* Hidden by default */
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+#new_plan_button {
+  display: none; /* Hidden by default */
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.big-button {
+  display: block;
+  width: 200px;
+  height: 50px;
+  margin: 0 auto;
+  background-color: #4a4a8e;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.big-button:hover {
+  background-color: #6565b9;
+}
+
+.big-button:active {
+  background-color: #333366;
+}
