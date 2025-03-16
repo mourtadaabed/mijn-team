@@ -1,33 +1,9 @@
 class User {
-    constructor(name, email, hashedPassword,team,shift,role="user") {
+    constructor(name, email, hashedPassword, team, shift, role="user") {
         this.name = name;
         this.email = email;
-        this.role = role;
-        this.team_shifts = [team+"-"+shift];
-        this.password = hashedPassword; // Store hashed password
+        this.password = hashedPassword;
+        this.team_shifts = [{ team_shift: `${team}-${shift}`, role: role }];
     }
-
-    add_team_shift(team_shift) {
-        this.team_shifts.push(team_shift);
-    }
-
-    remove_team_shift(team_shift) {
-        const index = this.team_shifts.indexOf(team_shift);
-        if (index !== -1) {
-            this.team_shifts.splice(index, 1);
-        } else {
-            console.log("Team shift not found.");
-        }
-    }
-
-    get_team_shifts() {
-        return this.team_shifts;
-    }
-
-    has_team_shift(team_shift) {
-        return this.team_shifts.includes(team_shift);
-    }
-
 }
-
 module.exports = User;

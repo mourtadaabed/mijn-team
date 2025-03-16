@@ -1,7 +1,7 @@
 // api/index.js
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const path = require("path"); // Add path module for reliable path resolution
+const path = require("path");
 require("dotenv").config();
 const { connectDB } = require("./utils/db");
 
@@ -11,7 +11,7 @@ app.use(cookieParser());
 
 // Log the path for debugging
 console.log("Serving static files from:", path.join(__dirname, "../public"));
-app.use(express.static(path.join(__dirname, "../public"))); // Correct path to public/
+app.use(express.static(path.join(__dirname, "../public")));
 
 // Routes
 const authRoutes = require("./routes/auth");
@@ -57,6 +57,10 @@ app.get("/newteam", (req, res) => {
 
 app.get("/login", (req, res) => {
   res.sendFile("login.html", { root: path.join(__dirname, "../public") });
+});
+
+app.get("/notAuthorized", (req, res) => {
+  res.sendFile("notAuthorized.html", { root: path.join(__dirname, "../public") });
 });
 
 // Health Check

@@ -1,3 +1,9 @@
+// proposal.js 
+
+// Import checkAuth from auth.js
+import { checkAuth } from './checkAuth.js'; 
+
+// Class Definitions
 class DayStation {
   constructor(stationNumber, stationName, operators, requiredOperators = 1, training = "") {
     this.stationNumber = stationNumber;
@@ -16,54 +22,70 @@ class Day {
   }
 }
 
+// Global Variables
 let dayplan;
 let copyday;
-var date = "";
 let teammembers = [];
 let Reserves = [];
 let Jobstudenten = [];
 let attendees_list = [];
 
-let user_name = storedUser().name;
-let team_name = storedUser().shift.slice(0, 2);
-let shift_name = storedUser().shift.slice(3, 4);
-let team_title = document.getElementById("team_naam");
-let team = document.getElementById("plogdiv");
-team.textContent = team_name + "-" + shift_name;
-let userName = document.getElementById("username");
-let teamName = document.getElementById("teamname");
-team_title.innerText = team_name + "-" + shift_name;
-userName.innerText = user_name;
-teamName.innerText = team_name + "-" + shift_name;
+// DOM Elements
+const team_title = document.getElementById("team_naam");
+const team = document.getElementById("plogdiv");
+const userName = document.getElementById("username");
+const teamName = document.getElementById("teamname");
+const teammembers_div = document.getElementById("teammembers_div");
+const reserves_div = document.getElementById("reserves_div");
+const jobstunds_div = document.getElementById("jobstunds_div");
+const date = document.getElementById("date");
+const tab = document.getElementById("maintable");
+const ext_list = document.getElementById("liextra");
+const aanwezigen = document.getElementById("aanwezigen-dd");
 
-let teammembers_div = document.getElementById("teammembers_div");
-let reserves_div = document.getElementById("reserves_div");
-let jobstunds_div = document.getElementById("jobstunds_div");
-var date = document.getElementById("date");
-var tab = document.getElementById("maintable");
-var ext_list = document.getElementById("liextra");
-var aanwezigen = document.getElementById("aanwezigen-dd");
+// Get stored user data from localStorage 
+function storedUser() {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    return JSON.parse(storedUser); // Expecting { name, team, shift, role }
+  }
+  return "no user stored";
+}
 
-fetchOperators(team_name, shift_name)
-  .then((fetchedOperators) => {
-    filter_operators(fetchedOperators);
-  })
-  .catch((error) => {
-    console.error("Failed to fetch operators:", error);
-    console.log("Failed to load operators. Please try again later.");
-  });
+// Handle Logged-In State
+function loggedin(userData) {
+  const user_name = userData.name;
+  const team_name = userData.team;
+  const shift_name = userData.shift;
 
+  team.textContent = `${team_name}-${shift_name}`;
+  team_title.innerText = `${team_name}-${shift_name}`;
+  userName.innerText = user_name;
+  teamName.innerText = `${team_name}-${shift_name}`;
+
+  fetchOperators(team_name, shift_name)
+    .then((fetchedOperators) => {
+      filter_operators(fetchedOperators);
+    })
+    .catch((error) => {
+      console.error("Failed to fetch operators:", error);
+    });
+}
+
+// Handle Not Logged-In State
+function NOT_loggedin() {
+  localStorage.removeItem("user");
+  document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  window.location.href = '/login';
+}
+
+// Fetch Operators
 async function fetchOperators(teamName, shiftName) {
   try {
     const response = await fetch("/operators", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        team: teamName,
-        shift: shiftName,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ team: teamName, shift: shiftName }),
     });
 
     if (!response.ok) {
@@ -82,6 +104,7 @@ async function fetchOperators(teamName, shiftName) {
   }
 }
 
+// Filter Operators into Categories
 function filter_operators(operators) {
   teammembers = [];
   Reserves = [];
@@ -103,6 +126,7 @@ function filter_operators(operators) {
   fillmaindiv(teammembers, Reserves, Jobstudenten);
 }
 
+// Fill Main Div with Operators
 function fillmaindiv(teammembers, reserves, jobstunds) {
   for (let index = 0; index < teammembers.length; index++) {
     const cb = document.createElement("input");
@@ -147,20 +171,17 @@ function fillmaindiv(teammembers, reserves, jobstunds) {
   }
 }
 
-
-//  validation function for 5-digit ID
+// Validation function for 5-digit ID
 function validateDayId(id) {
-  const idStr = id.toString(); // Convert to string in case it's a number
-  const isFiveDigits = /^\d{5}$/.test(idStr); // Regex: exactly 5 digits
-  return isFiveDigits;
+  const idStr = id.toString();
+  return /^\d{5}$/.test(idStr); // Exactly 5 digits
 }
 
-
+// Form Submission Handler
 document.getElementById("form").addEventListener("submit", function (e) {
   e.preventDefault();
   document.getElementById("proposal-div").style.display = "block";
   document.getElementById("aan_div").style.display = "none";
-
   getData(e.target);
 });
 
@@ -169,7 +190,6 @@ function getData(form) {
   let att = [];
 
   const formData = new FormData(form);
-
   for (const [key, value] of formData) {
     if (key === "id") {
       id = value;
@@ -177,39 +197,32 @@ function getData(form) {
       att.push(key);
     }
   }
-// Validate the ID before proceeding
-if (!validateDayId(id)) {
-  alert("Error: The Day ID must be exactly 5 digits (e.g., 12345).");
-  document.getElementById("proposal-div").style.display = "none";
-  document.getElementById("aan_div").style.display = "block";
-  return; // Stop further processing
-}
-  fetchAttendees(id, att, team_name, shift_name);
+
+  if (!validateDayId(id)) {
+    alert("Error: The Day ID must be exactly 5 digits (e.g., 12345).");
+    document.getElementById("proposal-div").style.display = "none";
+    document.getElementById("aan_div").style.display = "block";
+    return;
+  }
+
+  const userData = storedUser();
+  fetchAttendees(id, att, userData.team, userData.shift);
 }
 
+// Fetch Attendees and Day Plan
 async function fetchAttendees(id, attendees, team, shift) {
-  let dp;
-
   try {
-    const payload = {
-      id: id,
-      attendees: attendees,
-      team: team,
-      shift: shift,
-    };
-
+    const payload = { id, attendees, team, shift };
     const response = await fetch("/day-plan", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       if (response.status === 409) {
-        console.log(`Error: ${errorData.error}`); // Show error if ID already exists
+        console.log(`Error: ${errorData.error}`);
         document.getElementById("proposal-div").style.display = "none";
         document.getElementById("aan_div").style.display = "block";
         return;
@@ -217,7 +230,7 @@ async function fetchAttendees(id, attendees, team, shift) {
       throw new Error(`HTTP error! Status: ${response.status} - ${errorData.error}`);
     }
 
-    dp = await response.json();
+    const dp = await response.json();
     dayplan = dp;
     copyday = JSON.parse(JSON.stringify(dp)); // Deep copy
     drawtable(dayplan);
@@ -225,11 +238,11 @@ async function fetchAttendees(id, attendees, team, shift) {
     return { original: dayplan, copy: copyday };
   } catch (error) {
     console.error("Error fetching attendees:", error);
-    console.log("An error occurred while fetching the day plan. Please try again.");
     throw error;
   }
 }
 
+// Find Index of Station
 function index_of(p) {
   for (let index = 0; index < dayplan.stations.length; index++) {
     if (dayplan.stations[index].stationName === p) {
@@ -240,6 +253,7 @@ function index_of(p) {
   return null;
 }
 
+// Clear Table and Extra List
 function clear() {
   for (let i = tab.rows.length - 1; i > 0; i--) {
     tab.deleteRow(i);
@@ -248,15 +262,16 @@ function clear() {
   date.innerText = "";
 }
 
+// Draw Table with Day Plan
 function drawtable(dayplan) {
   clear();
   date.innerText = "week " + dayplan.id.slice(2, 4) + " Day " + dayplan.id.slice(4, 5);
   for (let i = 0; i < dayplan.stations.length; i++) {
-    var row = tab.insertRow(i + 1);
-    var cell1 = row.insertCell(0);
-    var cell2 = row.insertCell(1);
-    var cell3 = row.insertCell(2);
-    var cell4 = row.insertCell(3);
+    const row = tab.insertRow(i + 1);
+    const cell1 = row.insertCell(0);
+    const cell2 = row.insertCell(1);
+    const cell3 = row.insertCell(2);
+    const cell4 = row.insertCell(3);
     cell1.innerHTML = dayplan.stations[i].stationNumber;
     cell2.innerHTML = dayplan.stations[i].stationName;
 
@@ -280,35 +295,36 @@ function drawtable(dayplan) {
       cell3.innerHTML = "No operators assigned";
     }
 
-    cell3.setAttribute("class", "d_en_v");
+    cell3.className = "d_en_v";
     cell3.onclick = function () {
       createdropdownlist(dayplan.stations[i].stationName, 3);
     };
-    cell4.innerHTML = dayplan.stations[i].training;
-    cell4.setAttribute("class", "d_en_v");
-
+    cell4.innerHTML = dayplan.stations[i].training || "";
+    cell4.className = "d_en_v";
     cell4.onclick = function () {
       createdropdownlist(dayplan.stations[i].stationName, 4);
       document.getElementById("dropdown-div").style.top = "100px";
     };
-    if (dayplan.stations[i].operators == null || dayplan.stations[i].operators.length === 0) {
+
+    if (!dayplan.stations[i].operators || dayplan.stations[i].operators.length === 0) {
       cell3.innerHTML = "post niet gedekt !";
       row.style.background = "red";
     }
   }
 
   for (let index = 0; index < dayplan.extra.length; index++) {
-    let el = document.createElement("li");
+    const el = document.createElement("li");
     el.innerHTML = dayplan.extra[index];
     ext_list.appendChild(el);
   }
 }
 
+// Create Dropdown List for Operators/Training
 function createdropdownlist(station, col, clickedOperator = null) {
-  let bg = document.getElementById("bg_dropdown");
-  let tdd = document.getElementById("tit-list-anwz");
-  let niemand = document.getElementById("niemand");
-  let aanwezigen = document.getElementById("aanwezigen-dd");
+  const bg = document.getElementById("bg_dropdown");
+  const tdd = document.getElementById("tit-list-anwz");
+  const niemand = document.getElementById("niemand");
+  const aanwezigen = document.getElementById("aanwezigen-dd");
 
   if (!bg || !tdd || !niemand || !aanwezigen) {
     console.error("One or more dropdown elements not found:", { bg, tdd, niemand, aanwezigen });
@@ -355,8 +371,8 @@ function createdropdownlist(station, col, clickedOperator = null) {
 
   const ol = document.createElement("ol");
   for (let index = 0; index < dayplan.extra.length; index++) {
-    let li = document.createElement("li");
-    li.setAttribute("class", "li-elemt");
+    const li = document.createElement("li");
+    li.className = "li-elemt";
     li.innerHTML = dayplan.extra[index];
     ol.appendChild(li);
     li.onclick = function () {
@@ -368,7 +384,7 @@ function createdropdownlist(station, col, clickedOperator = null) {
       }
 
       if (col === 3) {
-        let operators = dayplan.stations[p].operators;
+        let operators = dayplan.stations[p].operators || [];
         if (!Array.isArray(operators)) {
           operators = operators ? [operators] : [];
         }
@@ -405,34 +421,32 @@ function createdropdownlist(station, col, clickedOperator = null) {
   aanwezigen.appendChild(ol);
 }
 
+// Confirm and Save Day Plan
 document.getElementById("bev").addEventListener("click", bevestigen);
 
 async function bevestigen() {
   try {
-    await fetchDayplan(dayplan, team_name, shift_name);
+    const userData = storedUser();
+    await fetchDayplan(dayplan, userData.team, userData.shift);
     window.location.href = "/";
   } catch (error) {
     console.error("Error in bevestigen:", error);
-    console.log("An error occurred while saving the day plan. Please try again.");
   }
 }
 
 async function fetchDayplan(dp, team, shift) {
   try {
     const payload = { dayplan: dp, team, shift };
-
     const response = await fetch("/dayplan", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       if (response.status === 409) {
-        console.log(`Error: ${errorData.error}`); // Show error if ID already exists
+        console.log(`Error: ${errorData.error}`);
         return;
       }
       throw new Error(`HTTP error! Status: ${response.status} - ${errorData.message}`);
@@ -446,41 +460,7 @@ async function fetchDayplan(dp, team, shift) {
   }
 }
 
-async function checkAuth() {
-  try {
-    const response = await fetch("/check-auth", {
-      credentials: "include",
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (!data.isAuthenticated) {
-        console.log("User is not authenticated. Redirecting to login page...");
-        window.location.href = "/login";
-      }
-    } else {
-      const errorData = await response.json();
-      console.error("Authentication check failed:", errorData.message);
-      if (response.status === 401) {
-        console.log("No token provided or token is invalid. Redirecting to login page...");
-        window.location.href = "/login";
-      }
-    }
-  } catch (error) {
-    console.error("Error checking authentication status:", error);
-    window.location.href = "/login";
-  }
-}
-
-function storedUser() {
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    const userData = JSON.parse(storedUser);
-    return userData;
-  }
-  return "no user stored";
-}
-
+// Logout Function
 async function logout() {
   try {
     const response = await fetch("/logout", {
@@ -500,7 +480,8 @@ async function logout() {
   }
 }
 
-window.onload = checkAuth;
+// Initialize Page
+window.onload = () => checkAuth(loggedin, NOT_loggedin);
 
 window.addEventListener("pageshow", function (event) {
   if (event.persisted) {

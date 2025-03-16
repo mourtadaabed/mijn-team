@@ -1,126 +1,108 @@
+// src/newuser.js 
+import { checkAuth } from './checkAuth.js';
+
+// Select elements
 const user_team = document.getElementById("user_team");
 const current_user = document.getElementById("current_user");
-const fullTeamName = storedUser().shift;
-const [teamname, shift] = fullTeamName.split('-');
-const user = storedUser().name;
-user_team.innerText="For Team: "+storedUser().shift;
-current_user.innerText="current user: "+user;
-function cancel() {
-    document.getElementById("userdata").reset();
-    document.getElementById("msg-login").innerText="";
-    if (document.referrer) {
-        window.location.href = document.referrer; 
-    } else {
-         window.location.href = "/";
-    }
+const userName = document.getElementById("username");
+const teamName = document.getElementById("teamname");
 
-  }
-localStorage
-// Function to handle form submission
-document.getElementById("userdata").addEventListener("submit", async (event) => {
-    event.preventDefault(); // Prevent the form from submitting the traditional way
+// Initial user data setup
+const userData = storedUser();
+const teamShift = userData?.team_shift || (userData?.team && userData?.shift ? `${userData.team}-${userData.shift}` : "No Team-No Shift");
+const [teamname, shift] = teamShift.split('-');
+const user = userData?.name || "Unknown";
+user_team.innerText = "For Team: " + teamShift;
+current_user.innerText = "current user: " + user;
 
-    // Get the form data
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-    const email = document.getElementById("email").value;
-
-    // Clear any previous messages
-    document.getElementById("msg-login").textContent = "";
-    document.getElementById("msg-login").style.color = "";
-
-
-    try {
-        // Send a POST request to the /register endpoint
-        const response = await fetch("/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username, password, email, teamname, shift }), // Send the data as JSON
-        });
-
-        // Handle the response
-        if (response.ok) {
-            // Registration successful
-            document.getElementById("msg-login").textContent = "Registration successful!";
-            document.getElementById("msg-login").style.color = "green";
-            if (document.referrer) {
-                window.location.href = document.referrer; 
-            } else {
-                 window.location.href = "/";
-            }
-
-        } else {
-            // Handle errors (e.g., user already exists)
-            const errorMessage = await response.text(); // Get the error message from the server
-            document.getElementById("msg-login").textContent = errorMessage;
-            document.getElementById("msg-login").style.color = "red";
-        }
-    } catch (error) {
-        // Handle network or other errors
-        console.error("An error occurred:", error);
-        document.getElementById("msg-login").textContent = "An error occurred. Please try again.";
-        document.getElementById("msg-login").style.color = "red";
-    }
-});
-
-async function checkAuth() {
-    try {
-        // Fetch authentication status from the server
-        const response = await fetch('/check-auth', {
-            credentials: 'include', // Include cookies in the request
-        });
-  
-        // Check if the response is OK (status code 200-299)
-        if (response.ok) {
-            const data = await response.json();
-  
-            // If the user is not authenticated, redirect to the login page
-            if (!data.isAuthenticated) {
-                console.log('User is not authenticated. Redirecting to login page...');
-                window.location.href = '/login';
-            }
-        } else {
-            // Handle non-OK responses (e.g., 401 Unauthorized)
-            const errorData = await response.json();
-            console.error('Authentication check failed:', errorData.message);
-  
-            // Redirect to the login page if the token is missing or invalid
-            if (response.status === 401) {
-                console.log('No token provided or token is invalid. Redirecting to login page...');
-                window.location.href = '/login';
-            }
-        }
-    } catch (error) {
-        // Handle network errors or other exceptions
-        console.error('Error checking authentication status:', error);
-  
-        // Optionally, redirect to the login page in case of unexpected errors
-        window.location.href = '/login';
-    }
-  }
-  
+let user_name = user;
+let team_name = teamname;
+let shift_name = shift;
 
 function storedUser() {
-  // Retrieve user from localStorage
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
-    const userData = JSON.parse(storedUser);
-    return userData;
+    return JSON.parse(storedUser);
   }
-  return "no user stored";    
+  return null;
 }
 
-  
-  
-  // Call checkAuth when the page loads
-  window.onload = checkAuth;
-  
-  
-  window.addEventListener('pageshow', function(event) {
-  if (event.persisted) {
-  // Page was loaded from the cache, force a reload
-  window.location.reload();
+function loggedin(userData) {
+  user_name = userData.name;
+  team_name = userData.team;
+  shift_name = userData.shift;
+  const teamShiftLocal = userData.team_shift || `${userData.team}-${userData.shift}`;
+  if (userName) userName.innerText = user_name;
+  if (teamName) teamName.innerText = `${team_name}-${shift_name}`;
+  user_team.innerText = "For Team: " + teamShiftLocal;
+  current_user.innerText = "current user: " + userData.name;
+}
+
+function NOT_loggedin() {
+  localStorage.removeItem("user");
+  document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  window.location.href = '/login';
+}
+
+function cancel() {
+  document.getElementById("userdata").reset();
+  document.getElementById("msg-login").innerText = "";
+  if (document.referrer) {
+    window.location.href = document.referrer; 
+  } else {
+    window.location.href = "/";
   }
-  });  
+}
+
+// Updated ID to match HTML: "cancel_button" instead of "cancelButton"
+document.getElementById("cancel_button")?.addEventListener("click", cancel);
+
+document.getElementById("userdata").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const isLoggedIn = await checkAuth(loggedin, NOT_loggedin);
+  if (!isLoggedIn) return;
+
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  const email = document.getElementById("email")?.value;
+
+  document.getElementById("msg-login").textContent = "";
+  document.getElementById("msg-login").style.color = "";
+
+  try {
+    const response = await fetch("/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: 'include',
+      body: JSON.stringify({ username, password, email, teamname, shift }),
+    });
+
+    if (response.ok) {
+      document.getElementById("msg-login").textContent = "Registration successful!";
+      document.getElementById("msg-login").style.color = "green";
+      setTimeout(() => {
+        if (document.referrer) {
+          window.location.href = document.referrer; 
+        } else {
+          window.location.href = "/";
+        }
+      }, 2000);
+    } else {
+      const errorMessage = await response.text();
+      document.getElementById("msg-login").textContent = errorMessage;
+      document.getElementById("msg-login").style.color = "red";
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+    document.getElementById("msg-login").textContent = "An error occurred. Please try again.";
+    document.getElementById("msg-login").style.color = "red";
+  }
+});
+
+window.onload = () => checkAuth(loggedin, NOT_loggedin);
+
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted) {
+    window.location.reload();
+  }
+});
