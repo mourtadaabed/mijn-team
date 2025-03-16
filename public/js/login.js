@@ -1,188 +1,203 @@
-// Import checkAuth (uncomment if separate file, adjust path as needed)
-// import { checkAuth } from './checkAuth.js';
+// ======================
+// Cookie Consent Banner
+// ======================
+document.addEventListener("DOMContentLoaded", function () {
+    const cookieConsent = document.getElementById("cookieConsent");
+    const acceptCookiesButton = document.getElementById("acceptCookies");
 
-// Event Listeners to get data to login 
-const cancel_button = document.getElementById("cancel_bt");
-cancel_button.addEventListener("click", cancel);
+    // Show the banner if the user hasn't accepted cookies yet
+    if (!localStorage.getItem("cookiesAccepted")) {
+        cookieConsent.style.display = "flex";
+    }
 
-function cancel() {
-    document.getElementById("userdata").reset();
-    document.getElementById("msg-login").innerText = "";
-    window.location.href = "/";
-}
-
-// Event Listeners to get data to login 
-document.getElementById("userdata").addEventListener("submit", function (e) {
-    e.preventDefault();
-    dataoflogin(e.target);
+    // Handle the accept button click
+    acceptCookiesButton.addEventListener("click", function () {
+        localStorage.setItem("cookiesAccepted", "true");
+        cookieConsent.style.display = "none";
+    });
 });
 
-// Handle form submission login
-async function dataoflogin(form) {
-    const formData = new FormData(form);
-    const username = formData.get("username");
-    const password = formData.get("password");
-  
-    form.reset();
-  
+// ======================
+// Login Form Handling
+// ======================
+document.getElementById("userdata").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    // Validate form inputs
+    if (!username || !password) {
+        showMessage("Please fill in all fields.", "error");
+        return;
+    }
+
+    // Send login data to the server
     try {
-        const success = await senduserdatatoserver(username, password);
+        const success = await sendLoginData(username, password);
         if (success) {
-            document.getElementById("msg-login").innerText = "";  
+            showMessage(" Choos your team!", "success");
         }
     } catch (error) {
-        console.error("Error during login:", error);
-        document.getElementById("msg-login").innerText = error.message;
+        showMessage(error.message, "error");
     }
-}
+});
 
-async function senduserdatatoserver(username, password) {
-    return fetch("/login", {
+// Function to send login data to the server
+async function sendLoginData(username, password) {
+    const response = await fetch("/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
         credentials: "include",
-    })
-    .then(async (response) => {
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Network response was not ok");
-        }
-        return response.json();
-    })
-    .then((data) => {
-        if (data.success) {
-            logedin(data.user);
-            return true;
-        } else {
-            console.error("Login failed:", data.message);
-            throw new Error(data.message || "Login failed");
-        }
-    })
-    .catch((error) => {
-        console.error("Error sending user data to server:", error);
-        throw error;
     });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed. Please try again.");
+    }
+
+    const data = await response.json();
+    if (data.success) {
+        handleLoginSuccess(data.user);
+        return true;
+    } else {
+        throw new Error(data.message || "Login failed. Please try again.");
+    }
 }
 
-function logedin(user) {
-    const choose_shift_form = document.getElementById("choose_shift_form");
-    const userdata_form = document.getElementById("userdata");
+// Function to handle successful login
+function handleLoginSuccess(user) {
+    const chooseShiftForm = document.getElementById("choose_shift_form");
+    const userDataForm = document.getElementById("userdata");
     const shiftSelect = document.getElementById("shift_select");
 
     if (!user || !Array.isArray(user.team_shifts)) {
-        document.getElementById("msg-login").innerText = "Login error: Invalid user data";
+        showMessage("Login error: Invalid user data.", "error");
         return;
     }
 
-    const u_shifts = user.team_shifts;
-    cancel_button.addEventListener("click", logout);
-    
-    if (u_shifts.length > 1) {
-        userdata_form.style.display = "none";
-        choose_shift_form.style.display = "block";
+    const userShifts = user.team_shifts;
+
+    // If the user has multiple shifts, show the shift selection form
+    if (userShifts.length > 1) {
+        userDataForm.style.display = "none";
+        chooseShiftForm.style.display = "block";
         shiftSelect.innerHTML = "";
 
-        u_shifts.forEach(shift => {
+        // Populate the shift dropdown
+        userShifts.forEach((shift) => {
             const option = document.createElement("option");
             option.value = shift.team_shift;
             option.textContent = shift.team_shift;
             shiftSelect.appendChild(option);
         });
 
+        // Handle shift selection
         document.getElementById("choose_shift_form").addEventListener("submit", function (e) {
             e.preventDefault();
-            const selectedShift = handleShiftSelection(e.target);
-            const [team, shift] = selectedShift.split('-');
-            const role = u_shifts.find(ts => ts.team_shift === selectedShift)?.role;
-            setdataToLSandredirect(user, team, shift, role);
+            const selectedShift = shiftSelect.value;
+            const [team, shift] = selectedShift.split("-");
+            const role = userShifts.find((ts) => ts.team_shift === selectedShift)?.role;
+            saveUserDataAndRedirect(user, team, shift, role);
         });
     } else {
-        const [team, shift] = u_shifts[0].team_shift.split('-');
-        const role = u_shifts[0].role;
-        setdataToLSandredirect(user, team, shift, role);
+        // If the user has only one shift, automatically proceed
+        const [team, shift] = userShifts[0].team_shift.split("-");
+        const role = userShifts[0].role;
+        saveUserDataAndRedirect(user, team, shift, role);
     }
 }
 
-function handleShiftSelection(form) {
-    const shiftSelect = document.getElementById("shift_select");
-    return shiftSelect.value; // Returns e.g., "test-A"
-}
-
-function setdataToLSandredirect(user, tea, shif, rol) {
+// Function to save user data to localStorage and redirect
+function saveUserDataAndRedirect(user, team, shift, role) {
     const userData = {
         name: user.name,
-        team: tea,
-        shift: shif,
-        role: rol
+        team: team,
+        shift: shift,
+        role: role,
     };
     localStorage.setItem("user", JSON.stringify(userData));
-    window.location.href = '/';
+    window.location.href = "/";
 }
+
+// ======================
+// Logout Functionality
+// ======================
+document.getElementById("cancel_bt").addEventListener("click", function () {
+    // Directly reset the form and redirect without showing an alert
+    document.getElementById("userdata").reset();
+    document.getElementById("msg-login").innerText = "";
+    window.location.href = "/";
+});
 
 async function logout() {
     try {
-        const response = await fetch('/logout', {
-            method: 'POST',
-            credentials: 'include',
+        const response = await fetch("/logout", {
+            method: "POST",
+            credentials: "include",
         });
 
         if (response.ok) {
             localStorage.removeItem("user");
             document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            window.location.href = '/'; 
+            window.location.href = "/";
         } else {
-            console.error('Logout failed:', response.statusText);
+            console.error("Logout failed:", response.statusText);
         }
     } catch (error) {
-        console.error('Error during logout:', error);
+        console.error("Error during logout:", error);
     }
 }
 
-// Add authentication check on page load
-async function checkAuth(loggedin, NOT_loggedin) {
-    const userData = JSON.parse(localStorage.getItem('user')) || {};
-    const { name = '', team = '', shift = '', role = '' } = userData;
-    const team_shift = team + '-' + shift;
+// ======================
+// Authentication Check
+// ======================
+window.onload = async function () {
+    await checkAuth();
+};
+
+async function checkAuth() {
+    const userData = JSON.parse(localStorage.getItem("user")) || {};
+    const { name = "", team = "", shift = "", role = "" } = userData;
+    const teamShift = team + "-" + shift;
 
     if (!name || !team || !shift || !role) {
-        NOT_loggedin();
         return;
     }
 
     try {
-        const response = await fetch('/verify-user', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, team_shift, role })
+        const response = await fetch("/verify-user", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, teamShift, role }),
         });
 
         if (response.ok) {
             const data = await response.json();
             if (data.isValid) {
-                loggedin(userData); // Redirects to '/' via setdataToLSandredirect
+                window.location.href = "/";
             } else {
-                NOT_loggedin();
+                showMessage("Session expired. Please log in again.", "error");
+                localStorage.removeItem("user");
             }
         } else {
-            console.log('Failed to verify user:', response.statusText);
-            NOT_loggedin();
+            console.error("Failed to verify user:", response.statusText);
+            showMessage("Session expired. Please log in again.", "error");
+            localStorage.removeItem("user");
         }
     } catch (error) {
-        console.log('Error verifying user:', error);
-        NOT_loggedin();
+        console.error("Error verifying user:", error);
+        showMessage("Session expired. Please log in again.", "error");
+        localStorage.removeItem("user");
     }
 }
 
-function NOT_loggedin() {
-    // No action needed here; login form is already visible by default
+// ======================
+// Utility Functions
+// ======================
+function showMessage(message, type = "info") {
+    const messageDiv = document.getElementById("msg-login");
+    messageDiv.innerText = message;
+    messageDiv.className = type; 
 }
-
-// Define a minimal loggedin for checkAuth to redirect
-function loggedinForCheck(userData) {
-    window.location.href = '/';
-}
-
-// Run checkAuth on page load
-window.onload = () => checkAuth(loggedinForCheck, NOT_loggedin);

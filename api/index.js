@@ -1,4 +1,3 @@
-// api/index.js
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const path = require("path");
@@ -61,6 +60,26 @@ app.get("/login", (req, res) => {
 
 app.get("/notAuthorized", (req, res) => {
   res.sendFile("notAuthorized.html", { root: path.join(__dirname, "../public") });
+});
+
+// Contact Us Route
+app.get("/contact", (req, res) => {
+  res.sendFile("contact.html", { root: path.join(__dirname, "../public") });
+});
+
+// API Endpoint for Contact Form Submission
+app.post("/api/contact", (req, res) => {
+  const { name, email, message } = req.body;
+
+  // the contact form data to  send an email
+  console.log(`New contact form submission: Name: ${name}, Email: ${email}, Message: ${message}`);
+
+  res.json({ message: "Thank you for contacting us! We will get back to you soon." });
+});
+
+// Cookie Policy Route
+app.get("/cookie-policy", (req, res) => {
+  res.sendFile("cookie-policy.html", { root: path.join(__dirname, "../public") });
 });
 
 // Health Check
