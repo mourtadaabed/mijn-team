@@ -1,6 +1,5 @@
-// proposal.js 
+// proposal.js
 
-// Import checkAuth from auth.js
 import { checkAuth } from './checkAuth.js'; 
 
 // Class Definitions
@@ -8,7 +7,7 @@ class DayStation {
   constructor(stationNumber, stationName, operators, requiredOperators = 1, training = "") {
     this.stationNumber = stationNumber;
     this.stationName = stationName;
-    this.operators = operators;
+    this.operators = operators; // Can be null, empty array, or array of strings
     this.training = training;
     this.requiredOperators = requiredOperators;
   }
@@ -17,8 +16,8 @@ class DayStation {
 class Day {
   constructor(id, stations, extra) {
     this.id = id;
-    this.stations = stations; // a list that contains DayStation objects
-    this.extra = extra; // a list that contains names (strings)
+    this.stations = stations;
+    this.extra = extra;
   }
 }
 
@@ -47,7 +46,7 @@ const aanwezigen = document.getElementById("aanwezigen-dd");
 function storedUser() {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
-    return JSON.parse(storedUser); // Expecting { name, team, shift, role }
+    return JSON.parse(storedUser);
   }
   return "no user stored";
 }
@@ -146,7 +145,7 @@ function fillmaindiv(teammembers, reserves, jobstunds) {
 
   for (let index = 0; index < reserves.length; index++) {
     const cb = document.createElement("input");
-    const la = document.createElement("label"); // Fixed typo from "lable" to "label"
+    const la = document.createElement("label");
     la.innerHTML = reserves[index];
     cb.setAttribute("name", reserves[index]);
     cb.type = "checkbox";
@@ -159,7 +158,7 @@ function fillmaindiv(teammembers, reserves, jobstunds) {
 
   for (let index = 0; index < jobstunds.length; index++) {
     const cb = document.createElement("input");
-    const la = document.createElement("label"); // Fixed typo from "lable" to "label"
+    const la = document.createElement("label");
     la.innerHTML = jobstunds[index];
     cb.setAttribute("name", jobstunds[index]);
     cb.type = "checkbox";
@@ -174,7 +173,7 @@ function fillmaindiv(teammembers, reserves, jobstunds) {
 // Validation function for 5-digit ID
 function validateDayId(id) {
   const idStr = id.toString();
-  return /^\d{5}$/.test(idStr); // Exactly 5 digits
+  return /^\d{5}$/.test(idStr);
 }
 
 // Form Submission Handler
@@ -232,7 +231,7 @@ async function fetchAttendees(id, attendees, team, shift) {
 
     const dp = await response.json();
     dayplan = dp;
-    copyday = JSON.parse(JSON.stringify(dp)); // Deep copy
+    copyday = JSON.parse(JSON.stringify(dp)); // Deep copy of original proposal
     drawtable(dayplan);
 
     return { original: dayplan, copy: copyday };
@@ -275,10 +274,11 @@ function drawtable(dayplan) {
     cell1.innerHTML = dayplan.stations[i].stationNumber;
     cell2.innerHTML = dayplan.stations[i].stationName;
 
-    if (dayplan.stations[i].operators && Array.isArray(dayplan.stations[i].operators)) {
+    const operators = dayplan.stations[i].operators;
+    if (operators && Array.isArray(operators) && operators.length > 0) {
       cell3.innerHTML = "";
       const ul = document.createElement("ul");
-      dayplan.stations[i].operators.forEach((operator) => {
+      operators.forEach((operator) => {
         const li = document.createElement("li");
         const span = document.createElement("span");
         span.textContent = operator;
@@ -306,7 +306,7 @@ function drawtable(dayplan) {
       document.getElementById("dropdown-div").style.top = "100px";
     };
 
-    if (!dayplan.stations[i].operators || dayplan.stations[i].operators.length === 0) {
+    if (!operators || operators.length === 0) {
       cell3.innerHTML = "post niet gedekt !";
       row.style.background = "red";
     }
@@ -479,6 +479,18 @@ async function logout() {
     console.error("Error during logout:", error);
   }
 }
+
+// Reset to Original Proposal on "Ververs" Click
+document.getElementById("ver").addEventListener("click", function () {
+  if (copyday) {
+    console.log("Resetting to copyday:", copyday); // Debug: Check copyday content
+    dayplan = JSON.parse(JSON.stringify(copyday)); // Reset to original proposal
+    drawtable(dayplan);
+  } else {
+    console.error("No original proposal available to revert to.");
+    alert("Geen origineel voorstel beschikbaar om te herstellen.");
+  }
+});
 
 // Initialize Page
 window.onload = () => checkAuth(loggedin, NOT_loggedin);

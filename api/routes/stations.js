@@ -6,14 +6,13 @@ const Station = require("../../modules/Station");
 const authenticate = require("../middleware/auth");
 
 router.post("/stations", authenticate, async (req, res) => {
-  const { team } = req.body;
-  if (!team) return res.status(400).json({ error: "Team is required" });
+  const { teamName } = req.body;
+  if (!teamName) return res.status(400).json({ error: "Team is required" });
 
   try {
     const db = getDB();
-    const teamDocument = await db.collection("teams").findOne({ teamName: team });
+    const teamDocument = await db.collection("teams").findOne({ teamName: teamName });
     if (!teamDocument) return res.status(404).json({ error: "Team not found" });
-
     const stations = teamDocument.stations || [];
     res.json(stations);
   } catch (error) {
@@ -24,9 +23,9 @@ router.post("/stations", authenticate, async (req, res) => {
 
 router.post("/check-station", authenticate, async (req, res) => {
   try {
-    const { station_number, team_name } = req.body;
+    const { station_number, teamName } = req.body;
     const db = getDB();
-    const exists = await checkStationInDB(station_number, team_name, db);
+    const exists = await checkStationInDB(station_number, teamName, db);
     res.json({ exists });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
@@ -35,13 +34,13 @@ router.post("/check-station", authenticate, async (req, res) => {
 
 router.post("/create-station", authenticate, async (req, res) => {
   try {
-    const { newStation: { station_number, station_name, requiredOperators = 1, description }, team_name } = req.body;
+    const { newStation: { station_number, station_name, requiredOperators = 1, description }, teamName } = req.body;
     const db = getDB();
-    const result = await createNewStation(station_number, station_name, requiredOperators, description, team_name, db);
+    const result = await createNewStation(station_number, station_name, requiredOperators, description, teamName, db);
 
     if (!result.success) return res.status(400).json({ error: result.message });
 
-    const teamDocument = await db.collection("teams").findOne({ teamName: team_name });
+    const teamDocument = await db.collection("teams").findOne({ teamName: teamName });
     const stations = teamDocument.stations || [];
     res.json(stations);
   } catch (error) {
@@ -52,13 +51,13 @@ router.post("/create-station", authenticate, async (req, res) => {
 
 router.put("/update-station", authenticate, async (req, res) => {
   try {
-    const { station_number, station_name, requiredOperators, description, team_name } = req.body;
-    if (!station_number || !team_name) {
+    const { station_number, station_name, requiredOperators, description, teamName } = req.body;
+    if (!station_number || !teamName) {
       return res.status(400).json({ error: "station_number and team_name required" });
     }
 
     const db = getDB();
-    const team = await db.collection("teams").findOne({ teamName: team_name });
+    const team = await db.collection("teams").findOne({ teamName: teamName });
     if (!team) return res.status(404).json({ error: "Team not found" });
 
     const stationIndex = team.stations.findIndex((station) => station.station_number === station_number);
@@ -72,7 +71,7 @@ router.put("/update-station", authenticate, async (req, res) => {
     };
 
     await db.collection("teams").updateOne(
-      { teamName: team_name },
+      { teamName: teamName },
       { $set: { stations: team.stations } }
     );
 
@@ -84,17 +83,18 @@ router.put("/update-station", authenticate, async (req, res) => {
 });
 
 router.delete("/delete-station", authenticate, async (req, res) => {
-  const { station_number, team } = req.body;
+  console.log(req.body);
+  const { station_number, teamName } = req.body;
   try {
     const db = getDB();
     const result = await db.collection("teams").updateOne(
-      { teamName: team },
+      { teamName: teamName },
       { $pull: { stations: { station_number } } }
     );
 
     if (result.modifiedCount === 0) return res.status(404).json({ success: false, message: "Station not found" });
 
-    const updatedTeam = await db.collection("teams").findOne({ teamName: team });
+    const updatedTeam = await db.collection("teams").findOne({ teamName: teamName });
     const updatedStations = updatedTeam.stations || [];
     res.json({ success: true, stations: updatedStations });
   } catch (error) {
@@ -103,9 +103,9 @@ router.delete("/delete-station", authenticate, async (req, res) => {
   }
 });
 
-async function checkStationInDB(station_number, team_name, db) {
+async function checkStationInDB(station_number, teamName, db) {
   try {
-    const team = await db.collection("teams").findOne({ teamName: team_name });
+    const team = await db.collection("teams").findOne({ teamName: teamName });
     if (!team || !Array.isArray(team.stations)) return false;
     return team.stations.some((station) => station.station_number === station_number);
   } catch (err) {

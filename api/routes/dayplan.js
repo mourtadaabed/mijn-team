@@ -9,20 +9,24 @@ const authenticate = require("../middleware/auth");
 
 router.post("/day-plan", authenticate, async (req, res) => {
   const { attendees, id, team, shift } = req.body;
+
   if (!attendees || !id || !team || !shift) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   try {
     const db = getDB();
-
-    // Check if the day id already exists
     const teamDoc = await db.collection("teams").findOne({ teamName: team });
-    if (!teamDoc) return res.status(404).json({ error: "Team not found" });
+    if (!teamDoc) {
+      return res.status(404).json({ error: "Team not found" });
+    }
 
     const shiftData = teamDoc.shifts.find((s) => s.name === shift);
-    if (!shiftData) return res.status(404).json({ error: "Shift not found" });
+    if (!shiftData) {
+      return res.status(404).json({ error: "Shift not found" });
+    }
 
+    shiftData.days = shiftData.days || [];
     const dayExists = shiftData.days.some((day) => day.id === id);
     if (dayExists) {
       return res.status(409).json({ error: `Day with ID ${id} already exists for this team and shift` });
@@ -48,7 +52,7 @@ router.post("/dayplan", authenticate, async (req, res) => {
     if (!dayplan || !team || !shift || !dayplan.stations) {
       return res.status(400).json({ error: "Invalid dayplan data" });
     }
-    
+
     const db = getDB();
     const teamDoc = await db.collection("teams").findOne({ teamName: team });
     if (!teamDoc) return res.status(404).json({ message: "Team not found" });
@@ -56,53 +60,35 @@ router.post("/dayplan", authenticate, async (req, res) => {
     const shiftData = teamDoc.shifts.find((s) => s.name === shift);
     if (!shiftData) return res.status(404).json({ message: "Shift not found" });
 
-    // Check if the day id already exists
+    shiftData.days = shiftData.days || [];
     const dayExists = shiftData.days.some((day) => day.id === dayplan.id);
     if (dayExists) {
       return res.status(409).json({ error: `Day with ID ${dayplan.id} already exists for this team and shift` });
     }
 
-    // Initialize operator_history if it doesn't exist
-    if (!shiftData.operator_history) {
-      shiftData.operator_history = [];
-    }
+    shiftData.operator_history = shiftData.operator_history || [];
 
-    // Update operator_history for each operator in the dayplan
     for (const dayStation of dayplan.stations) {
-      console.log("Processing dayStation:", dayStation);
       if (dayStation.operators && Array.isArray(dayStation.operators)) {
         for (const operatorName of dayStation.operators) {
           const operator = shiftData.operators.find((op) => op.name === operatorName);
           if (operator && operator.number) {
             let historyEntry = shiftData.operator_history.find((h) => h.number === operator.number);
             if (!historyEntry) {
-              historyEntry = {
-                name: operator.name,
-                number: operator.number,
-                stations: []
-              };
+              historyEntry = { name: operator.name, number: operator.number, stations: [] };
               shiftData.operator_history.push(historyEntry);
             }
             const stationNumber = dayStation.stationNumber;
             if (stationNumber != null) {
               const index = historyEntry.stations.indexOf(stationNumber);
-              if (index !== -1) {
-                historyEntry.stations.splice(index, 1);
-                console.log(`Removed existing station ${stationNumber} from history for ${operatorName}`);
-              }
+              if (index !== -1) historyEntry.stations.splice(index, 1);
               historyEntry.stations.push(stationNumber);
-              console.log(`Added station ${stationNumber} to history for ${operatorName}`);
-            } else {
-              console.warn(`Skipping invalid stationNumber for ${operatorName}:`, stationNumber);
             }
-          } else {
-            console.warn(`Operator ${operatorName} not found or missing number`);
           }
         }
       }
     }
 
-    // Update the team document with the new dayplan and operator_history
     const result = await db.collection("teams").updateOne(
       { teamName: team, "shifts.name": shift },
       {
@@ -147,50 +133,33 @@ async function findoperator(attendees, id, team, shift, db) {
       (station) => new Station(station.station_number, station.station_name, station.requiredOperators, station.description)
     );
 
-    const proposal = await proposaldayplan(id, stations_db, operators_db, shiftData.operator_history || [], team, shift);
-    return proposal;
+    return await proposaldayplan(id, stations_db, operators_db, shiftData.operator_history || [], team, shift);
   } catch (error) {
     console.error("Error in findoperator:", error.message);
     throw error;
   }
 }
+
 async function proposaldayplan(id, stations, attendees, op_history, team, shift) {
   const dayStations = [];
   const dayExtra = [];
   const assignedOperators = [];
 
-  // Step 1: Create new_operators with stat_hist
-  const new_operators = [];
-  for (let i = 0; i < attendees.length; i++) {
-    let find = false;
-    for (let j = 0; j < op_history.length; j++) {
-      if (attendees[i].name === op_history[j].name) {
-        const stat_hist = stat_hist_maker(attendees[i].stations, op_history[j].stations);
-        new_operators.push({
-          "operator_name": attendees[i].name,
-          "operator_number": attendees[i].number,
-          stat_hist
-        });
-        find = true;
-        break;
-      }
-    }
-    if (!find) {
-      const stat_hist = stat_hist_maker(attendees[i].stations, []);
-      new_operators.push({
-        "operator_name": attendees[i].name,
-        "operator_number": attendees[i].number,
-        stat_hist
-      });
-    }
-  }
+  const new_operators = attendees.map((attendee) => {
+    const history = op_history.find((h) => h.name === attendee.name);
+    const stat_hist = stat_hist_maker(attendee.stations, history ? history.stations : []);
+    return {
+      operator_name: attendee.name,
+      operator_number: attendee.number,
+      stat_hist
+    };
+  });
 
-  // Step 2: Get the best assignment
   const bestassigmnt = finale_table_maker(stations, new_operators, attendees);
 
-  // Step 3: Populate dayStations with assigned operators
+  // Include all stations, assigned or not
+  const assignmentMap = new Map();
   if (bestassigmnt.found && bestassigmnt.combo) {
-    const assignmentMap = new Map();
     bestassigmnt.combo.forEach(assignment => {
       if (!assignmentMap.has(assignment.task)) {
         assignmentMap.set(assignment.task, []);
@@ -198,134 +167,119 @@ async function proposaldayplan(id, stations, attendees, op_history, team, shift)
       assignmentMap.get(assignment.task).push(assignment.operator);
       assignedOperators.push(assignment.operator);
     });
-
-    for (let i = 0; i < stations.length; i++) {
-      const stationNumber = stations[i].station_number;
-      const operatorsForStation = assignmentMap.get(stationNumber) || [];
-      dayStations.push(
-        new DayStation(
-          stations[i].station_number,
-          stations[i].station_name,
-          operatorsForStation.length > 0 ? operatorsForStation : null,
-          "", // Initialize training as empty string
-          stations[i].requiredOperators
-        )
-      );
-    }
-  } else {
-    console.log("No valid assignment found; falling back to empty stations.");
-    for (let i = 0; i < stations.length; i++) {
-      dayStations.push(
-        new DayStation(
-          stations[i].station_number,
-          stations[i].station_name,
-          null,
-          "",
-          stations[i].requiredOperators
-        )
-      );
-    }
   }
 
-  // Step 4: Assign unassigned operators to training in dayStations
-  console.log("Assigned Operators:", assignedOperators);
-  const trainedOperators = new Set(); // Track operators assigned to training
+  stations.forEach((station) => {
+    const stationNumber = station.station_number;
+    const operatorsForStation = assignmentMap.get(stationNumber) || [];
+    dayStations.push(
+      new DayStation(
+        station.station_number,
+        station.station_name,
+        operatorsForStation.length > 0 ? operatorsForStation : null,
+        "",
+        station.requiredOperators
+      )
+    );
+  });
 
+  const trainedOperators = new Set();
   attendees.forEach((attendee) => {
     if (!assignedOperators.includes(attendee.name)) {
-      // Find a station the operator doesn't know and hasn't been used for training yet
-      const trainingStation = dayStations.find(station => 
-        !attendee.stations.includes(station.stationNumber) && 
-        station.training === "" // Only assign if training slot is empty
+      const trainingStation = dayStations.find(
+        (station) => !attendee.stations.includes(station.stationNumber) && station.training === ""
       );
       if (trainingStation) {
-        trainingStation.training = attendee.name; // Assign to training field
+        trainingStation.training = attendee.name;
         trainedOperators.add(attendee.name);
-        console.log(`Assigned ${attendee.name} to train on ${trainingStation.stationName}`);
       } else {
-        // No suitable training station available, add to dayExtra
         dayExtra.push(attendee.name);
-        console.log(`No training station for ${attendee.name}; added to dayExtra`);
       }
     }
   });
 
-  // Step 5: Return the Day object
-  const dayplan = new Day(id, dayStations, dayExtra);
-  return dayplan;
+  return new Day(id, dayStations, dayExtra);
 }
 
-// Supporting functions (unchanged)
 function stat_hist_maker(stat, his) {
   const stat_hist = {};
-  for (let i = 0; i < stat.length; i++) {
-    if (!his.includes(stat[i])) {
-      stat_hist[stat[i]] = 0;
-    }
+  for (const s of stat) {
+    if (!his.includes(s)) stat_hist[s] = 0;
   }
   const hasElements = Object.keys(stat_hist).length > 0;
-  for (let i = 0; i < his.length; i++) {
-    if (hasElements) {
-      stat_hist[his[i]] = i + 1;
-    } else {
-      stat_hist[his[i]] = i;
-    }
-  }
+  his.forEach((h, i) => {
+    stat_hist[h] = hasElements ? i + 1 : i;
+  });
   return stat_hist;
 }
 
 function finale_table_maker(stat, oper, attendees) {
-  const newstations = [];
-  console.log("*****************");
-  for (let i = 0; i < stat.length; i++) {
-    let newstat = {};
-    newstat["number"] = stat[i].station_number;
-    newstat["oper_req"] = stat[i].requiredOperators;
-    let possible_operators = {};
-    for (let j = 0; j < oper.length; j++) {
-      if (stat[i].station_number in oper[j].stat_hist) {
-        possible_operators[oper[j].operator_name] = oper[j].stat_hist[stat[i].station_number];
+  const newstations = stat.map((station) => {
+    const possible_operators = {};
+    oper.forEach((op) => {
+      if (station.station_number in op.stat_hist) {
+        possible_operators[op.operator_name] = op.stat_hist[station.station_number];
       }
-    }
-    newstat["possible_operators"] = possible_operators;
-    newstations.push(newstat);
-  }
+    });
+    return {
+      number: station.station_number,
+      oper_req: station.requiredOperators,
+      possible_operators
+    };
+  });
   return find_best_assignment(newstations, 0, attendees);
 }
 
 function best_possible_assignment(main_table, btc, attendees) {
-  console.log(`Trying with btc = ${btc}`);
-  const taskOperators = main_table.map(task => {
-    const operators = Object.entries(task.possible_operators)
-      .map(([name, cost]) => ({ name, cost: parseInt(cost) }));
-    return { number: task.number, oper_req: parseInt(task.oper_req), operators };
-  });
+  const taskOperators = main_table.map(task => ({
+    number: task.number,
+    oper_req: parseInt(task.oper_req),
+    operators: Object.entries(task.possible_operators).map(([name, cost]) => ({ name, cost: parseInt(cost) }))
+  }));
 
   const totalRequiredOperators = taskOperators.reduce((sum, task) => sum + task.oper_req, 0);
-  const allOperators = new Set();
-  taskOperators.forEach(task => {
-    task.operators.forEach(op => allOperators.add(op.name));
-  });
-  console.log(`Total required operators: ${totalRequiredOperators}, Unique operators available: ${allOperators.size}`);
+  const allOperators = new Set(taskOperators.flatMap(task => task.operators.map(op => op.name)));
 
   let adjustedTaskOperators = [...taskOperators];
-  if (allOperators.size < totalRequiredOperators) {
-    console.log("Not enough operators; leaving last task unassigned.");
-    const lastTask = adjustedTaskOperators[adjustedTaskOperators.length - 1];
-    lastTask.oper_req = 0;
+  let ignoredTasks = [];
+
+  if (allOperators.size > totalRequiredOperators) {
+    let requiredOperatorsSoFar = 0;
+    adjustedTaskOperators = [];
+    for (const task of taskOperators) {
+      requiredOperatorsSoFar += task.oper_req;
+      if (requiredOperatorsSoFar <= allOperators.size) {
+        adjustedTaskOperators.push(task);
+      } else {
+        ignoredTasks = taskOperators.slice(taskOperators.indexOf(task)).map(t => t.number);
+        break;
+      }
+    }
+  } else if (allOperators.size < totalRequiredOperators) {
+    let remainingOperatorsNeeded = totalRequiredOperators - allOperators.size;
+    for (let i = taskOperators.length - 1; i >= 0 && remainingOperatorsNeeded > 0; i--) {
+      if (adjustedTaskOperators[i].oper_req > 0) {
+        const reduction = Math.min(adjustedTaskOperators[i].oper_req, remainingOperatorsNeeded);
+        adjustedTaskOperators[i].oper_req -= reduction;
+        remainingOperatorsNeeded -= reduction;
+        if (adjustedTaskOperators[i].oper_req === 0) {
+          ignoredTasks.push(adjustedTaskOperators[i].number);
+        }
+      }
+    }
   }
 
   function* generateCombinations(tasks, currentCombo = [], taskIndex = 0, currentCost = 0, usedOperators = new Set()) {
     if (currentCost > btc) return;
     if (taskIndex === tasks.length) {
-      yield currentCombo;
+      yield { combo: currentCombo, cost: currentCost };
       return;
     }
     const task = tasks[taskIndex];
     if (task.oper_req === 0) {
       yield* generateCombinations(tasks, currentCombo, taskIndex + 1, currentCost, usedOperators);
     } else if (task.oper_req === 1) {
-      for (let op of task.operators) {
+      for (const op of task.operators) {
         if (!usedOperators.has(op.name)) {
           const newCost = currentCost + op.cost;
           if (newCost <= btc) {
@@ -360,43 +314,34 @@ function best_possible_assignment(main_table, btc, attendees) {
   }
 
   const combinationIterator = generateCombinations(adjustedTaskOperators);
-  let index = 1;
+  let bestCombo = null;
+  let bestCost = -1;
   let found = false;
-  let resultCombo = null;
 
-  for (let combo of combinationIterator) {
-    const totalCost = combo.reduce((sum, assignment) => sum + assignment.cost, 0);
-    if (totalCost === btc) {
+  for (const { combo, cost } of combinationIterator) {
+    if (combo.length > 0 && cost <= btc && cost > bestCost) {
+      bestCombo = combo;
+      bestCost = cost;
       found = true;
-      resultCombo = combo;
-      console.log(`Combination ${index} (Found with btc = ${btc}):`);
-      combo.forEach(assignment => {
-        console.log(`  Task ${assignment.task}: ${assignment.operator} (Cost: ${assignment.cost})`);
-      });
-      if (adjustedTaskOperators[adjustedTaskOperators.length - 1].oper_req === 0) {
-        console.log(`  Task ${adjustedTaskOperators[adjustedTaskOperators.length - 1].number}: None (Cost: 0)`);
-      }
-      console.log(`  Total Cost: ${totalCost}`);
-      console.log('---');
-      break;
     }
-    index++;
   }
 
-  if (!found) console.log(`No combination found for btc = ${btc}`);
-  return { found, combo: resultCombo, totalCost: found ? btc : null };
+  return { found, combo: bestCombo, totalCost: bestCost, ignoredTasks };
 }
 
 function find_best_assignment(main_table, initialBtc = 0, attendees = []) {
+  const maxBtc = initialBtc + 100;
   let btc = initialBtc;
-  while (true) {
+
+  while (btc <= maxBtc) {
     const result = best_possible_assignment(main_table, btc, attendees);
-    if (result.found) {
+    if (result.found || result.combo !== null) {
       return result;
     }
     btc += 1;
   }
-}
 
+  return { found: false, combo: null, totalCost: null, ignoredTasks: main_table.map(t => t.number) };
+}
 
 module.exports = router;

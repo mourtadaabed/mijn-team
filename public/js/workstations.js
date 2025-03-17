@@ -34,6 +34,7 @@ function storedUser() {
 // Handle logged-in state
 function loggedin(userData) {
   userName.innerText = userData.name || "Unknown";
+  const team_n = userData.team;
   const teamShift = `${userData.team}-${userData.shift}`; // Construct team_shift
   teamName.innerText = `${userData.team} - Shift: ${userData.shift}`;
 
@@ -53,7 +54,7 @@ function loggedin(userData) {
   }
 
   logoutButton.onclick = logout;
-  fetchStations(teamShift); // Fetch stations using constructed team_shift
+  fetchStations(team_n); // 
 }
 
 // Clear table and form
@@ -88,20 +89,18 @@ function drawtable(stations) {
       this.innerHTML = stations[i].station_number;
     };
     cell1.onclick = function() {
-      deleteStation(stations[i].station_number, storedUser()?.team && storedUser()?.shift 
-        ? `${storedUser().team}-${storedUser().shift}` 
-        : "NoTeam-NoShift");
+      deleteStation(stations[i].station_number, storedUser().team);
     };
   }
 }
 
 // Fetch stations for a team_shift
-async function fetchStations(team_shift) {
+async function fetchStations(team_n) {
   try {
     const response = await fetch('/stations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ team: team_shift }),
+      body: JSON.stringify({ teamName: team_n }),
     });
 
     if (!response.ok) {
@@ -116,14 +115,14 @@ async function fetchStations(team_shift) {
 }
 
 // Delete a station
-async function deleteStation(station_number, team_shift) {
+async function deleteStation(station_number, teamName) {
   if (!confirm(`Are you sure you want to delete station ${station_number}?`)) return;
 
   try {
     const response = await fetch('/delete-station', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ station_number, team: team_shift }),
+      body: JSON.stringify({ station_number, teamName: teamName }),
     });
 
     if (!response.ok) {
@@ -155,17 +154,15 @@ async function getData(form) {
   const description = formData.get("description");
   const requiredOperators = formData.get("requiredOperators") || 1;
   const userData = storedUser();
-  const team_shift = userData?.team && userData?.shift 
-    ? `${userData.team}-${userData.shift}` 
-    : "NoTeam-NoShift";
+  const teamName = userData.team;
 
   const newStation = new Station(station_number, station_name, requiredOperators, description);
 
-  if (!(await isexist_in_db(station_number, team_shift))) {
-    await create_new_station(newStation, team_shift);
+  if (!(await isexist_in_db(station_number, teamName))) {
+    await create_new_station(newStation, teamName);
   } else {
     if (confirm("The station already exists. Do you want to update it?")) {
-      const updateResult = await update_station_in_db(station_number, station_name, requiredOperators, description, team_shift);
+      const updateResult = await update_station_in_db(station_number, station_name, requiredOperators, description, teamName);
       if (!updateResult.success) {
         alert('Failed to update station.');
       } 
@@ -174,12 +171,12 @@ async function getData(form) {
 }
 
 // Check if station exists
-async function isexist_in_db(station_number, team_shift) {
+async function isexist_in_db(station_number, teamName) {
   try {
     const response = await fetch('/check-station', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ station_number, team: team_shift }),
+      body: JSON.stringify({ station_number, teamName: teamName }),
     });
 
     if (!response.ok) {
@@ -195,7 +192,7 @@ async function isexist_in_db(station_number, team_shift) {
 }
 
 // Create a new station
-async function create_new_station(newStation, team_shift) {
+async function create_new_station(newStation, teamName) {
   try {
     const response = await fetch('/create-station', {
       method: 'POST',
@@ -207,7 +204,7 @@ async function create_new_station(newStation, team_shift) {
           requiredOperators: newStation.requiredOperators,
           description: newStation.description,
         },
-        team_name: team_shift,
+        teamName: teamName,
       }),
     });
 
@@ -225,7 +222,7 @@ async function create_new_station(newStation, team_shift) {
 }
 
 // Update an existing station
-async function update_station_in_db(station_number, station_name, requiredOperators, description, team_shift) {
+async function update_station_in_db(station_number, station_name, requiredOperators, description, teamName) {
   try {
     const response = await fetch('/update-station', {
       method: 'PUT',
@@ -235,7 +232,7 @@ async function update_station_in_db(station_number, station_name, requiredOperat
         station_name,
         requiredOperators,
         description,
-        team_name: team_shift,
+        teamName: teamName,
       }),
     });
 

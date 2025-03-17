@@ -45,7 +45,7 @@ const logoutButton = document.getElementById("logout");
 userName.innerText = user_name;
 teamName.innerText = `${team_name}-${shift_name}`;
 
-// Get stored user data from localStorage (kept in page for local use)
+// Get stored user data from localStorage 
 function storedUser() {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
@@ -290,7 +290,7 @@ async function fetchStations(teamName) {
     const response = await fetch('/stations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ team: teamName }),
+      body: JSON.stringify({ teamName: teamName }),
     });
 
     if (!response.ok) {
