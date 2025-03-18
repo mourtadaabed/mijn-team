@@ -1,6 +1,7 @@
-// newshift.js (updated with debugging)
+// newshift.js (updated with debugging and role restriction)
 import { checkAuth } from './checkAuth.js';
 
+// DOM Elements
 const cancelButton = document.getElementById("cancelButton");
 const shiftForm = document.getElementById("newshift");
 const user_team = document.getElementById("user_team");
@@ -21,13 +22,17 @@ current_user.innerText = "current user: " + user;
 
 function storedUser() {
   const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    return JSON.parse(storedUser);
-  }
-  return null;
+  return storedUser ? JSON.parse(storedUser) : null;
 }
 
 function loggedin(userData) {
+  // Check if the user has the "admin" role
+  if (userData.role !== "admin") {
+    window.location.href = "/notAuthorized"; // Redirect non-admin users to notAuthorized page
+    return;
+  }
+
+  // Proceed with page setup for admin users
   user_team.innerText = "For Team: " + userData.team;
   current_user.innerText = "current user: " + userData.name;
 }
@@ -55,6 +60,13 @@ if (shiftForm) {
     const isLoggedIn = await checkAuth(loggedin, NOT_loggedin);
     console.log("isLoggedIn:", isLoggedIn); // Debug log
     if (!isLoggedIn) return;
+
+    // Double-check role here in case checkAuth doesn't call loggedin immediately
+    const currentUser = storedUser();
+    if (currentUser.role !== "admin") {
+      window.location.href = "/notAuthorized"; // Redirect non-admin users to notAuthorized page
+      return;
+    }
 
     const shiftname = document.getElementById("shiftname").value.trim();
     const username = document.getElementById("username").value.trim();
@@ -90,7 +102,7 @@ async function sendToServer(user, teamname, shiftname) {
     console.log("Response status:", response.status); // Debug log
 
     // Handle JSON response from server
-    const data = await response.json(); // Updated to parse JSON
+    const data = await response.json();
     if (response.ok) {
       messageBox.textContent = data.message || "Shift created successfully!";
       messageBox.style.color = "green";
@@ -107,12 +119,13 @@ async function sendToServer(user, teamname, shiftname) {
   }
 }
 
+// Page initialization
 window.onload = () => {
   console.log("Window loaded"); // Debug log
   checkAuth(loggedin, NOT_loggedin);
 };
 
-window.addEventListener('pageshow', function(event) {
+window.addEventListener('pageshow', (event) => {
   if (event.persisted) {
     window.location.reload();
   }

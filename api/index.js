@@ -71,11 +71,11 @@ app.get("/contact", (req, res) => {
   res.sendFile("contact.html", { root: path.join(__dirname, "../public") });
 });
 
-// API Endpoint for Contact Form Submission
+// API Endpoint for Contact Form Submission (No Email)
 app.post("/api/contact", (req, res) => {
   const { name, email, message } = req.body;
 
-  // the contact form data to  send an email
+  // Log the contact form data
   console.log(`New contact form submission: Name: ${name}, Email: ${email}, Message: ${message}`);
 
   res.json({ message: "Thank you for contacting us! We will get back to you soon." });

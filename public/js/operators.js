@@ -1,71 +1,85 @@
-// operators.js
-
 // Import checkAuth from checkAuth.js
 import { checkAuth } from './checkAuth.js';
 
 // Class Definitions
 class Workstation {
-    constructor(name, number, description) {
-        this.name = name;
-        this.number = number;
-        this.bes = description; // Kept 'bes' as per your code, assuming it's intentional
-    }
+  constructor(name, number, description) {
+    this.name = name;
+    this.number = number;
+    this.bes = description; // Assuming 'bes' is intentional
+  }
 }
 
 class Operator {
-    constructor(name, number, rol = "teammember") {
-        this.name = name;
-        this.number = number;
-        this.posten = [];
-        this.rol = rol;
-    }
+  constructor(name, number, rol = "teammember") {
+    this.name = name;
+    this.number = number;
+    this.posten = [];
+    this.rol = rol;
+  }
 }
 
-var activeoplist = [];
-var teamleden = [];
-var reserven = [];
-var jobsudenten = [];
+// Global Variables
+let activeoplist = [];
+let teamleden = [];
+let reserven = [];
+let jobsudenten = [];
 let stations = [];
 let operators = [];
 
 let user_name = storedUser()?.name || "Unknown";
 let team_name = storedUser()?.team || "No Team";
 let shift_name = storedUser()?.shift || "No Shift";
-let role = storedUser()?.role || "No Shift";
+let role = storedUser()?.role || "teammember";
 
 // DOM Elements
-let userName = document.getElementById("username");
-let teamName = document.getElementById("teamname");
+const userName = document.getElementById("username");
+const teamName = document.getElementById("teamname");
 const adminMenu = document.getElementById("admin_menu");
 const newPlanButtonDiv = document.getElementById("new_plan_button");
 const newPlanButton = document.querySelector("#new_plan_button .big-button");
 const logoutButton = document.getElementById("logout");
+const table = document.getElementById("maintable");
+const form = document.getElementById("newoperator");
 
-// Set user info initially
+// Initial Setup
 userName.innerText = user_name;
 teamName.innerText = `${team_name}-${shift_name}`;
 
-// Get stored user data from localStorage 
+// Utility Functions
 function storedUser() {
   const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    return JSON.parse(storedUser); 
-  }
-  return null;
+  return storedUser ? JSON.parse(storedUser) : null;
 }
 
-// Handle logged-in state
+// Handle Logged-In State
 function loggedin(userData) {
   user_name = userData.name;
   team_name = userData.team;
   shift_name = userData.shift;
+  role = userData.role;
   userName.innerText = user_name;
   teamName.innerText = `${team_name}-${shift_name}`;
-  showAdminFeatures();
+  
+  showAdminFeatures(userData.role);
   initializeTable(team_name, shift_name);
 }
 
-// Initialize and draw the table once both lists are ready
+// Show Admin Features and Always Show Big Button
+function showAdminFeatures(userRole) {
+  adminMenu.style.display = userRole === "admin" ? "block" : "none"; // Admin menu only for admins
+  newPlanButtonDiv.style.display = "block"; // Big button always visible
+  
+  if (newPlanButton) {
+    newPlanButton.addEventListener("click", () => {
+      window.location.href = '/proposal';
+    });
+  }
+  
+  logoutButton.onclick = logout;
+}
+
+// Initialize Table Data
 async function initializeTable(teamName, shiftName) {
   try {
     await Promise.all([
@@ -74,17 +88,17 @@ async function initializeTable(teamName, shiftName) {
     ]);
     drawtable();
   } catch (error) {
-    console.error('Failed to fetch data:', error);
+    console.error('Failed to initialize table:', error);
   }
 }
 
+// Logout Function
 async function logout() {
   try {
     const response = await fetch('/logout', {
       method: 'POST',
       credentials: 'include',
     });
-
     if (response.ok) {
       localStorage.removeItem("user");
       document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -97,34 +111,8 @@ async function logout() {
   }
 }
 
-function showAdminFeatures() {
-  adminMenu.style.display = "block";
-  newPlanButtonDiv.style.display = "block";
-
-  if (newPlanButton) {
-    newPlanButton.addEventListener("click", function () {
-      window.location.href = '/proposal';
-    });
-  } 
-
-  logoutButton.onclick = logout;
-}
-
-// Call checkAuth when the page loads
-window.onload = () => checkAuth(loggedin);
-
-window.addEventListener('pageshow', function(event) {
-  if (event.persisted) {
-    window.location.reload();
-  }
-});
-
-var table = document.getElementById("maintable");
-var form = document.getElementById("newoperator");
-document.getElementById("addingoperator_div").setAttribute("title", "Als je de naam en/of titel wil wijzigen, geef de huidige naam in");
-
-// Form submission handler
-form.addEventListener("submit", async function (e) {
+// Form Submission Handler
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   await getData(e.target);
 });
@@ -132,23 +120,20 @@ form.addEventListener("submit", async function (e) {
 async function getData(form) {
   const formData = new FormData(form);
   const { number, name, rol } = Object.fromEntries(formData);
-
   const newOperator = new Operator(name, number, rol);
 
   const result = await isexist_in_db(newOperator.number, team_name, shift_name);
   if (!result.exists) {
     await create_new_operator(newOperator, team_name, shift_name);
+  } else if (confirm(`The Operator ${result.operatorName} already exists. Do you want to update them?`)) {
+    await updating_operator(newOperator.number, result.operatorName, result.operatorRol);
   } else {
-    const confirmResult = confirm(`The Operator ${result.operatorName} already exists. Do you want to update them?`);
-    if (confirmResult) {
-      await updating_operator(newOperator.number, result.operatorName, result.operatorRol);
-    } else {
-      console.log('Update canceled.');
-      form.reset();
-    }
+    console.log('Update canceled.');
+    form.reset();
   }
 }
 
+// Database Interaction Functions
 async function isexist_in_db(operator_number, team_name, shift_name) {
   try {
     const response = await fetch('/check-operator', {
@@ -156,11 +141,7 @@ async function isexist_in_db(operator_number, team_name, shift_name) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ operator_number, team_name, shift_name }),
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
     return {
       exists: data.exists,
@@ -169,11 +150,7 @@ async function isexist_in_db(operator_number, team_name, shift_name) {
     };
   } catch (error) {
     console.error('Error checking operator:', error);
-    return {
-      exists: false,
-      operatorName: null,
-      operatorRol: null
-    };
+    return { exists: false, operatorName: null, operatorRol: null };
   }
 }
 
@@ -183,20 +160,12 @@ async function create_new_operator(newOperator, team_name, shift_name) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        newOperator: {
-          number: newOperator.number,
-          name: newOperator.name,
-          rol: newOperator.rol,
-        },
+        newOperator: { number: newOperator.number, name: newOperator.name, rol: newOperator.rol },
         team_name,
         shift_name,
       }),
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const updatedOperators = await response.json();
     drawtable(updatedOperators);
     return true;
@@ -217,7 +186,7 @@ async function updating_operator(number, name, rol) {
   const newForm = oldOperatorForm.cloneNode(true);
   oldOperatorForm.parentNode.replaceChild(newForm, oldOperatorForm);
 
-  newForm.addEventListener("submit", async function (e) {
+  newForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     await getData2(e.target, number);
     document.getElementById("addingoperator_div").style.display = "block";
@@ -237,19 +206,9 @@ async function getData2(form, number) {
     const response = await fetch('/update-operator', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        number,
-        name,
-        rol,
-        team_name,
-        shift_name,
-      }),
+      body: JSON.stringify({ number, name, rol, team_name, shift_name }),
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const updatedOperators = await response.json();
     drawtable(updatedOperators.operators);
     return true;
@@ -266,16 +225,9 @@ async function fetchOperators(teamName, shiftName) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ team: teamName, shift: shiftName }),
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
     const fetchedOperators = await response.json();
-    if (!Array.isArray(fetchedOperators)) {
-      throw new Error('Invalid response format: expected an array of operators');
-    }
-
+    if (!Array.isArray(fetchedOperators)) throw new Error('Invalid response format');
     operators = fetchedOperators;
     return operators;
   } catch (error) {
@@ -290,15 +242,10 @@ async function fetchStations(teamName) {
     const response = await fetch('/stations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ teamName: teamName }),
+      body: JSON.stringify({ teamName }),
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const fetchedStations = await response.json();
-    stations = fetchedStations;
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    stations = await response.json();
     return stations;
   } catch (error) {
     console.error('Error fetching stations:', error);
@@ -307,6 +254,7 @@ async function fetchStations(teamName) {
   }
 }
 
+// Table Drawing Functions
 function clear() {
   form.reset();
   for (let i = table.rows.length - 1; i > 0; i--) {
@@ -316,103 +264,55 @@ function clear() {
 
 function drawtable(operatorslist = operators) {
   clear();
+  const row1 = table.insertRow(1);
+  stations.forEach((station, ix) => {
+    row1.insertCell(ix).innerHTML = station.station_name;
+  });
 
-  var row1 = table.insertRow(1);
-  for (let ix = 0; ix < stations.length; ix++) {
-    var cell10 = row1.insertCell(ix);
-    cell10.innerHTML = stations[ix].station_name;
-  }
-
-  for (let i = 0; i < operatorslist.length; i++) {
-    var row = table.insertRow(i + 2);
-    var cell0 = row.insertCell(0);
-    cell0.innerHTML = operatorslist[i].name;
-    cell0.setAttribute("class", "cell");
-    cell0.setAttribute("title", "Click to remove operator\nName: " + operatorslist[i].name +
-      " Number: " + operatorslist[i].number + " Rol: " + operatorslist[i].rol);
-
-    cell0.onmouseenter = function(e) {
-      this.innerHTML = "Delete ?";
-    };
-    cell0.onmouseleave = function(e) {
-      this.innerHTML = operatorslist[i].name;
-    };
-
-    cell0.onclick = function(e) {
-      if (confirm("Are you sure you want to delete: " + operatorslist[i].name +
-          "? number: " + operatorslist[i].number)) {
-        deleteOperator(
-          operatorslist[i].number,
-          team_name,
-          shift_name
-        )
-        .then(updatedOperators => {
+  operatorslist.forEach((operator, i) => {
+    const row = table.insertRow(i + 2);
+    const cell0 = row.insertCell(0);
+    cell0.innerHTML = operator.name;
+    cell0.className = "cell";
+    cell0.title = `Click to remove operator\nName: ${operator.name} Number: ${operator.number} Rol: ${operator.rol}`;
+    cell0.onmouseenter = () => cell0.innerHTML = "Delete ?";
+    cell0.onmouseleave = () => cell0.innerHTML = operator.name;
+    cell0.onclick = async () => {
+      if (confirm(`Are you sure you want to delete: ${operator.name}? number: ${operator.number}`)) {
+        try {
+          const updatedOperators = await deleteOperator(operator.number, team_name, shift_name);
           operators = updatedOperators;
           drawtable(updatedOperators);
-        })
-        .catch(error => {
+        } catch (error) {
           console.error('Deletion failed:', error);
           alert('Failed to delete operator: ' + error.message);
-        });
+        }
       }
     };
 
-    let j = 1;
-    for (let index = 0; index < stations.length; index++) {
-      try {
-        const cell1 = row.insertCell(j);
-        const stationNumber = stations[index].station_number;
+    stations.forEach((station, index) => {
+      const cell = row.insertCell(index + 1);
+      const stationNumber = station.station_number;
+      cell.innerHTML = stationNumber;
+      cell.className = "cell";
+      cell.title = "Click to change the status of station";
+      const isAssigned = operator.stations.includes(stationNumber);
 
-        cell1.innerHTML = stationNumber;
-        cell1.className = "cell";
-        cell1.title = "Click to change the status of station";
-
-        const isAssigned = operatorslist[i].stations.includes(stationNumber);
-
-        if (!isAssigned) {
-          cell1.style.backgroundColor = "rgb(254, 65, 65)";
-          cell1.onclick = async function(e) {
-            add_station_to_operator(
-              stationNumber,
-              operatorslist[i].number,
-              team_name,
-              shift_name
-            )
-            .then(updatedOperators => {
-              operators = updatedOperators;
-              drawtable(updatedOperators);
-            })
-            .catch(error => {
-              console.error('Deletion failed:', error);
-              alert('Failed to delete operator: ' + error.message);
-            });
-          };
-        } else {
-          cell1.style.backgroundColor = "rgb(158, 219, 185)";
-          cell1.onclick = async function(e) {
-            delete_station_from_operator(
-              stationNumber,
-              operatorslist[i].number,
-              team_name,
-              shift_name
-            )
-            .then(updatedOperators => {
-              operators = updatedOperators;
-              drawtable(updatedOperators);
-            })
-            .catch(error => {
-              console.error('Deletion failed:', error);
-              alert('Failed to delete operator: ' + error.message);
-            });
-          };
+      cell.style.backgroundColor = isAssigned ? "rgb(158, 219, 185)" : "rgb(254, 65, 65)";
+      cell.onclick = async () => {
+        try {
+          const updatedOperators = isAssigned
+            ? await delete_station_from_operator(stationNumber, operator.number, team_name, shift_name)
+            : await add_station_to_operator(stationNumber, operator.number, team_name, shift_name);
+          operators = updatedOperators;
+          drawtable(updatedOperators);
+        } catch (error) {
+          console.error('Action failed:', error);
+          alert('Failed to update operator: ' + error.message);
         }
-        j++;
-      } catch (error) {
-        console.error(`Error processing station at index ${index}:`, error);
-        j++;
-      }
-    }
-  }
+      };
+    });
+  });
 }
 
 async function add_station_to_operator(stationNumber, operatorNumber, team, shift) {
@@ -420,21 +320,13 @@ async function add_station_to_operator(stationNumber, operatorNumber, team, shif
     const response = await fetch('/add-station-to-operator', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        station_number: stationNumber,
-        operator_number: operatorNumber,
-        team_name: team,
-        shift_name: shift
-      })
+      body: JSON.stringify({ station_number: stationNumber, operator_number: operatorNumber, team_name: team, shift_name: shift }),
     });
-
     const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to add station');
-    }
+    if (!response.ok) throw new Error(data.message || 'Failed to add station');
     return data.operators;
   } catch (error) {
-    console.error('Error in add_station_to_operator:', error);
+    console.error('Error adding station:', error);
     throw error;
   }
 }
@@ -444,21 +336,13 @@ async function delete_station_from_operator(stationNumber, operatorNumber, team,
     const response = await fetch('/delete-station-from-operator', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        station_number: stationNumber,
-        operator_number: operatorNumber,
-        team_name: team,
-        shift_name: shift
-      })
+      body: JSON.stringify({ station_number: stationNumber, operator_number: operatorNumber, team_name: team, shift_name: shift }),
     });
-
     const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to delete station');
-    }
+    if (!response.ok) throw new Error(data.message || 'Failed to delete station');
     return data.operators;
   } catch (error) {
-    console.error('Error in delete_station_from_operator:', error);
+    console.error('Error deleting station:', error);
     throw error;
   }
 }
@@ -468,52 +352,26 @@ async function deleteOperator(operatorNumber, teamName, shiftName) {
     const response = await fetch('/delete-operator', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        operator_number: operatorNumber,
-        team_name: teamName,
-        shift_name: shiftName
-      })
+      body: JSON.stringify({ operator_number: operatorNumber, team_name: teamName, shift_name: shiftName }),
     });
-
     const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to delete operator');
-    }
-
-    if (data.success) {
-      return data.operators;
-    } else {
-      throw new Error(data.message || 'Operator not found');
-    }
+    if (!response.ok || !data.success) throw new Error(data.message || 'Failed to delete operator');
+    return data.operators;
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Error deleting operator:', error);
     throw error;
   }
 }
 
-var btres = document.getElementById("bt-res");
-btres.onclick = function(e) {
-  const newlist = operators.filter(operator => operator.rol == "reserve");
-  activeoplist = newlist;
-  drawtable(activeoplist);
-};
+// Filter Button Handlers
+document.getElementById("bt-res").onclick = () => drawtable(operators.filter(op => op.rol === "reserve"));
+document.getElementById("bt-tea").onclick = () => drawtable(operators.filter(op => op.rol === "teammember"));
+document.getElementById("bt-job").onclick = () => drawtable(operators.filter(op => op.rol === "jobstudent"));
+document.getElementById("bt-all").onclick = () => drawtable(operators);
 
-var bttea = document.getElementById("bt-tea");
-bttea.onclick = function(e) {
-  const newlist = operators.filter(operator => operator.rol == "teammember");
-  activeoplist = newlist;
-  drawtable(activeoplist);
-};
-
-var btjob = document.getElementById("bt-job");
-btjob.onclick = function(e) {
-  const newlist = operators.filter(operator => operator.rol == "jobstudent");
-  activeoplist = newlist;
-  drawtable(activeoplist);
-};
-
-var btall = document.getElementById("bt-all");
-btall.onclick = function(e) {
-  activeoplist = operators;
-  drawtable(activeoplist);
-};
+// Page Load and Event Listeners
+window.onload = () => checkAuth(loggedin);
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) window.location.reload();
+});
+document.getElementById("addingoperator_div").setAttribute("title", "Als je de naam en/of titel wil wijzigen, geef de huidige naam in");

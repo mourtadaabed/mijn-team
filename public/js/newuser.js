@@ -21,13 +21,17 @@ let shift_name = shift;
 
 function storedUser() {
   const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    return JSON.parse(storedUser);
-  }
-  return null;
+  return storedUser ? JSON.parse(storedUser) : null;
 }
 
 function loggedin(userData) {
+  // Check if the user has the "admin" role
+  if (userData.role !== "admin") {
+    window.location.href = "/notAuthorized"; // Redirect non-admin users to notAuthorized page
+    return;
+  }
+
+  // Proceed with page setup for admin users
   user_name = userData.name;
   team_name = userData.team;
   shift_name = userData.shift;
@@ -47,20 +51,25 @@ function NOT_loggedin() {
 function cancel() {
   document.getElementById("userdata").reset();
   document.getElementById("msg-login").innerText = "";
-  if (document.referrer) {
-    window.location.href = document.referrer; 
-  } else {
-    window.location.href = "/";
-  }
+  window.location.href = document.referrer || "/";
 }
 
-// Updated ID to match HTML: "cancel_button" instead of "cancelButton"
+// Event listener for cancel button
 document.getElementById("cancel_button")?.addEventListener("click", cancel);
 
+// Form submission handler
 document.getElementById("userdata").addEventListener("submit", async (event) => {
   event.preventDefault();
+  
   const isLoggedIn = await checkAuth(loggedin, NOT_loggedin);
   if (!isLoggedIn) return;
+
+  // Double-check role here in case checkAuth doesn't call loggedin immediately
+  const currentUser = storedUser();
+  if (currentUser.role !== "admin") {
+    window.location.href = "/notAuthorized"; // Redirect non-admin users to notAuthorized page
+    return;
+  }
 
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
@@ -81,11 +90,7 @@ document.getElementById("userdata").addEventListener("submit", async (event) => 
       document.getElementById("msg-login").textContent = "Registration successful!";
       document.getElementById("msg-login").style.color = "green";
       setTimeout(() => {
-        if (document.referrer) {
-          window.location.href = document.referrer; 
-        } else {
-          window.location.href = "/";
-        }
+        window.location.href = document.referrer || "/";
       }, 2000);
     } else {
       const errorMessage = await response.text();
@@ -99,10 +104,8 @@ document.getElementById("userdata").addEventListener("submit", async (event) => 
   }
 });
 
+// Page initialization
 window.onload = () => checkAuth(loggedin, NOT_loggedin);
-
-window.addEventListener('pageshow', function(event) {
-  if (event.persisted) {
-    window.location.reload();
-  }
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) window.location.reload();
 });

@@ -18,7 +18,6 @@ function storedUser() {
 
 // Function to check authentication status
 async function checkAuth() {
-
   const userData = storedUser();
 
   // Check if essential user data is missing
@@ -46,7 +45,7 @@ async function checkAuth() {
     if (response.ok) {
       const data = await response.json();
       if (data.isValid) {
-        showAdminFeatures(team, userData.name); // Pass verified team and name
+        showAdminFeatures(team, shift, userData.name, userData.role); // Pass team and shift separately
         return true;
       } else {
         console.log('User verification failed (isValid: false), redirecting to login');
@@ -65,30 +64,33 @@ async function checkAuth() {
   }
 }
 
-// Function to handle not logged-in state (no debugging delay)
+// Function to handle not logged-in state
 function NOT_loggedin() {
   localStorage.removeItem("user");
   document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   window.location.href = '/login';
 }
 
-// Function to show admin features and set logout
-function showAdminFeatures(team, username) {
-  adminMenu.style.display = "block";
+// Function to show admin features based on role
+function showAdminFeatures(team, shift, username, role) {
+  // Show admin menu only for admin role
+  adminMenu.style.display = role === "admin" ? "block" : "none";
+  
+  // Show these elements for all logged-in users
   newPlanButtonDiv.style.display = "block";
   userTeamDiv.style.display = "block";
   loginButton.value = "Uitloggen";
 
-  // Display user info
+  // Display user info with team and shift
   usernameDisplay.textContent = username || "Unknown";
-  teamnameDisplay.textContent = team || "No Team";
+  teamnameDisplay.textContent = `${team || "No Team"} - Shift: ${shift || "No Shift"}`;
 
   // Attach New Plan button listener
   if (newPlanButton) {
     newPlanButton.addEventListener("click", function () {
       window.location.href = '/proposal';
     });
-  } 
+  }
 
   // Attach logout handler
   loginButton.onclick = logout;
