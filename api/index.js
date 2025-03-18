@@ -18,7 +18,11 @@ const teamRoutes = require("./routes/teams");
 const stationRoutes = require("./routes/stations");
 const operatorRoutes = require("./routes/operators");
 const dayplanRoutes = require("./routes/dayplan");
+const shiftRoutes = require("./routes/shifts"); 
+const userRoutes = require("./routes/users");
 
+app.use("/", shiftRoutes);
+app.use("/", userRoutes); 
 app.use("/", authRoutes);
 app.use("/", teamRoutes);
 app.use("/", stationRoutes);
