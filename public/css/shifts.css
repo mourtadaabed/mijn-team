@@ -2,7 +2,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
 }
 
 body {
@@ -95,7 +94,7 @@ th {
 
 #menu {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 #menu a {
@@ -119,7 +118,7 @@ th {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 #admin_menu a {

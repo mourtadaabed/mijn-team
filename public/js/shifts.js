@@ -2,7 +2,7 @@ import { checkAuth } from './checkAuth.js';
 
 // DOM Elements
 const shiftForm = document.getElementById("newshift");
-const user_team = document.getElementById("user_team");
+const user_team = document.getElementById("userteam");
 const current_user = document.getElementById("current_user");
 const current_shift = document.getElementById("current_shift");
 const adminMenu = document.getElementById("admin_menu");

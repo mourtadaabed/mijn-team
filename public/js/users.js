@@ -103,8 +103,6 @@ teamName.innerText = `${userData.team}-${userData.shift}`;
 });
 
 
-
-
 // Create User
 document.getElementById('createUserForm').addEventListener('submit', async (e) => {
   e.preventDefault();
