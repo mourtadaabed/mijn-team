@@ -11,7 +11,7 @@ let role = storedUser()?.role || "teammember"; // Default to "teammember" if no 
 // Function to populate shift dropdowns
 async function populateShiftDropdown(selectElement, selectedValue = null) {
   try {
-    const response = await fetch('/api/users/shifts');
+    const response = await fetch('/shifts_list');
     const availableShifts = await response.json();
     
     selectElement.innerHTML = '';
@@ -38,7 +38,7 @@ async function populateShiftDropdown(selectElement, selectedValue = null) {
 // Function to fetch and display users
 async function displayUsers() {
   try {
-    const response = await fetch('/api/users', {
+    const response = await fetch('/users', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include'
@@ -95,8 +95,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (userData) {
     role = userData.role;
     showAdminFeatures(role);
+    const userName = document.getElementById("username");
+const teamName = document.getElementById("teamname");
+userName.innerText = userData.name;
+teamName.innerText = `${userData.team}-${userData.shift}`;
   }
 });
+
+
+
 
 // Create User
 document.getElementById('createUserForm').addEventListener('submit', async (e) => {
@@ -205,8 +212,31 @@ async function showUpdateModal(username) {
     console.log('Failed to load user data: ' + error.message);
   }
 }
+const logoutButton = document.getElementById("logout");
+logoutButton.onclick = logout;
+// Logout Function
+async function logout() {
+  try {
+    const response = await fetch('/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (response.ok) {
+      localStorage.removeItem("user");
+      document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      window.location.href = '/';
+    } else {
+      console.error('Logout failed:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
+}
+
 
 // Cancel Update
 document.getElementById('cancelUpdate').addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
 });
+const current_team = document.getElementById("current_team");
+current_team.innerHTML="Team : "+storedUser().team;

@@ -4,7 +4,12 @@ import { checkAuth } from './checkAuth.js';
 const shiftForm = document.getElementById("newshift");
 const user_team = document.getElementById("user_team");
 const current_user = document.getElementById("current_user");
+const current_shift = document.getElementById("current_shift");
 const adminMenu = document.getElementById("admin_menu");
+
+const userName = document.getElementById("un");
+const teamName = document.getElementById("teamname");
+
 
 // Initial user data setup
 const userData = storedUser();
@@ -20,8 +25,13 @@ function storedUser() {
 }
 
 function loggedin(userData) {
-  user_team.innerText = "For Team: " + userData.team;
-  current_user.innerText = "current user: " + userData.name;
+  user_team.innerText = "Team: " + userData.team;
+  current_shift.innerText = "Shift: " + userData.shift;
+  current_user.innerText = "User: " + userData.name;
+
+  userName.innerText = userData.name;
+  teamName.innerText = `${userData.team}-${userData.shift}`;
+
   showAdminFeatures(userData.role);
 
   if (userData.role !== "admin") {
@@ -103,7 +113,26 @@ async function sendToServer(user, teamname, shiftname) {
     messageBox.style.color = "red";
   }
 }
-
+const logoutButton = document.getElementById("logout");
+logoutButton.onclick = logout;
+// Logout Function
+async function logout() {
+  try {
+    const response = await fetch('/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (response.ok) {
+      localStorage.removeItem("user");
+      document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      window.location.href = '/';
+    } else {
+      console.error('Logout failed:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
+}
 // Page initialization
 window.onload = () => {
   checkAuth(loggedin, NOT_loggedin);

@@ -45,7 +45,7 @@ router.post("/register", authenticate, async (req, res) => {
     // Create new user
     const newUser = new User(
       normalizedUsername,
-      email || "", // Email is optional in your frontend, so default to empty string if not provided
+      email,
       hashedPassword,
       teamname,
       shift,
@@ -62,6 +62,36 @@ router.post("/register", authenticate, async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating user:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+// GET /api/users/shifts - Fetch available shifts
+router.get("/shifts_list", authenticate, async (req, res) => {
+  try {
+    const db = getDB();
+
+    // Fetch all teams from the database
+    const teams = await db.collection("teams").find({}).toArray();
+
+    // Extract unique shift names from all teams
+    const allShifts = teams.reduce((shifts, team) => {
+      team.shifts.forEach(shift => {
+        if (!shifts.includes(shift.name)) {
+          shifts.push(shift.name);
+        }
+      });
+      return shifts;
+    }, []);
+
+    if (!allShifts.length) {
+      return res.status(404).json({ success: false, message: "No shifts found" });
+    }
+
+    // Respond with the list of shift names
+    res.status(200).json(allShifts);
+  } catch (error) {
+    console.error("Error fetching shifts:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });

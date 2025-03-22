@@ -23,7 +23,7 @@
     
     <div class="container">
         <h1>User Management System</h1>
-
+        <h4 id="current_team">current_team</h4>
         <!-- Create User Section -->
         <div class="section">
             <h2>Create New User</h2>
@@ -112,7 +112,11 @@
             <button type="button" id="cancelUpdate">Cancel</button>
         </form>
     </div>
-
+    <hr>
+    <div id="user_team">Welkom: <span id="username"></span>, Your Team is: <span id="teamname"></span></div>
+    <div class="log">
+        <input type="button" id="logout" value="Uitloggen">
+    </div>
     <script src="js/users.js"></script>
 </body>
 </html>
