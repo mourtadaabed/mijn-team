@@ -31,48 +31,46 @@ app.use("/", dayplanRoutes);
 
 // Frontend Routes
 app.get("/", (req, res) => {
-  res.sendFile("index.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/index.html", { root: path.join(__dirname, "../public") });
 });
 
 app.get("/operators", require("./middleware/auth"), (req, res) => {
-  res.sendFile("operators.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/operators.html", { root: path.join(__dirname, "../public") });
 });
 
 app.get("/workstations", require("./middleware/auth"), (req, res) => {
-  res.sendFile("workstations.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/workstations.html", { root: path.join(__dirname, "../public") });
 });
 
 app.get("/proposal", require("./middleware/auth"), (req, res) => {
-  res.sendFile("proposal.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/proposal.html", { root: path.join(__dirname, "../public") });
 });
 
-app.get("/newuser", require("./middleware/auth"), (req, res) => {
-  res.sendFile("newuser.html", { root: path.join(__dirname, "../public") });
+app.get("/users", require("./middleware/auth"), (req, res) => {
+  res.sendFile("html/users.html", { root: path.join(__dirname, "../public") });
 });
 
 app.get("/shifts", require("./middleware/auth"), (req, res) => {
-  res.sendFile("shifts.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/shifts.html", { root: path.join(__dirname, "../public") });
 });
 
 app.get("/newteam", (req, res) => {
-  res.sendFile("newteam.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/newteam.html", { root: path.join(__dirname, "../public") });
 });
 
 app.get("/login", (req, res) => {
-  res.sendFile("login.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/login.html", { root: path.join(__dirname, "../public") });
 });
 
 app.get("/notAuthorized", (req, res) => {
-  res.sendFile("notAuthorized.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/notAuthorized.html", { root: path.join(__dirname, "../public") });
 });
 
-app.get("/users", (req, res) => {
-  res.sendFile("users.html", { root: path.join(__dirname, "../public") });
-});
+
 
 // Contact Us Route
 app.get("/contact", (req, res) => {
-  res.sendFile("contact.html", { root: path.join(__dirname, "../public") });
+  res.sendFile("html/contact.html", { root: path.join(__dirname, "../public") });
 });
 
 // API Endpoint for Contact Form Submission (No Email)
