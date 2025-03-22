@@ -50,8 +50,8 @@ app.get("/newuser", require("./middleware/auth"), (req, res) => {
   res.sendFile("newuser.html", { root: path.join(__dirname, "../public") });
 });
 
-app.get("/newshift", require("./middleware/auth"), (req, res) => {
-  res.sendFile("newshift.html", { root: path.join(__dirname, "../public") });
+app.get("/shifts", require("./middleware/auth"), (req, res) => {
+  res.sendFile("shifts.html", { root: path.join(__dirname, "../public") });
 });
 
 app.get("/newteam", (req, res) => {
@@ -64,6 +64,10 @@ app.get("/login", (req, res) => {
 
 app.get("/notAuthorized", (req, res) => {
   res.sendFile("notAuthorized.html", { root: path.join(__dirname, "../public") });
+});
+
+app.get("/users", (req, res) => {
+  res.sendFile("users.html", { root: path.join(__dirname, "../public") });
 });
 
 // Contact Us Route

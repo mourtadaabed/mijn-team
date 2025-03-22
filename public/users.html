@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <link rel="stylesheet" href="css/users.css">
+</head>
+<body>
+
+
+    <div id="menu">
+        <a href="/" id="r" class="w">Home</a>
+        <a href="/workstations" class="w">Workstations</a>
+        <a href="/newteam" class="w" id="n-t">New Team</a>
+        <a href="/contact" class="w" >Contact</a>
+    </div>
+    <hr>
+    <div id="admin_menu" style="display: none;">
+        <a href="/users" class="w">User's</a>
+        <a href="/shifts" class="w">Shift's</a>
+    </div>
+
+    
+    <div class="container">
+        <h1>User Management System</h1>
+
+        <!-- Create User Section -->
+        <div class="section">
+            <h2>Create New User</h2>
+            <form id="createUserForm">
+                <div class="form-group">
+                    <label>Username:</label>
+                    <input type="text" id="createUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Shift:</label>
+                    <select id="createShift" required>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Role:</label>
+                    <select id="createRole" required>
+                        <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="createEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="createPassword" required>
+                </div>
+                <button type="submit">Create User</button>
+            </form>
+        </div>
+
+        <!-- Users Table Section -->
+        <div class="section">
+            <h2>All Users</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Shift</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable">
+                        <!-- User data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update User Modal -->
+    <div id="updateModal" class="modal">
+        <h2>Update User</h2>
+        <form id="updateUserForm">
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" id="updateUsername" required>
+            </div>
+            <div class="form-group">
+                <label>Shift:</label>
+                <select id="updateShift" required>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Role:</label>
+                <select id="updateRole" required>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="updateEmail" required>
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="updatePassword" placeholder="Enter new password">
+            </div>
+            <button type="submit">Update User</button>
+            <button type="button" id="cancelUpdate">Cancel</button>
+        </form>
+    </div>
+
+    <script src="js/users.js"></script>
+</body>
+</html>
