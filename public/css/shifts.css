@@ -1,106 +1,163 @@
-body{
-    text-align: center;
-    background-color: #f4f4f9;
-  }
-  a {
-    text-decoration: none;
-    color: black;
-  }
-  .w{
-    padding-left: 5px;
-    padding-right: 5px;
-    border-left: solid 1px;
-  }
-  .w:first-child {
-    border-left: none; 
-  }
-  .w:hover{
-    background-color: lightgray;
-    padding-left: 1.5%;
-    padding-right: 1.5%;
-    font-weight: bold;
-  }
-  hr{
-    width: 70%;
-  }
-#newshift{
-    padding-top: 20px;
-    background-color: #F5F5DC;
-    width: 400px;
-    margin-top: 100px;
-    margin-left: auto;
-    margin-right: auto;
-    border-radius:5%;
-    box-shadow: 10px 15px 15px black; /* Shadow effect */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
-#cancelButton{
-    margin-bottom: 50px;
+
+body {
+  background-color: #f0f2f5;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  color: #1a73e8;
+  margin-bottom: 30px;
+}
+
+.section {
+  background-color: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-container {
+  background-color: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.button-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+button {
+  background-color: #1a73e8;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #1557b0;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #f5f6fa;
+  color: #333;
+}
+
+#menu {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#menu a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: black;
+  padding-left: 1%;
+  padding-right: 1%;
+}
+
+#menu a.w {
+  border-left: solid 1px black;
+}
+
+#menu a.w:first-child {
+  border-left: none;
+}
+
+#admin_menu {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#admin_menu a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: black;
+  padding-left: 1%;
+  padding-right: 1%;
+}
+
+#admin_menu a.w {
+  border-left: solid 1px black;
+}
+
+#admin_menu a.w:first-child {
+  border-left: none;
+}
+
+hr {
+  margin: 10px 0;
+  border: 0;
+  border-top: 1px solid #ddd;
 }
 
 #msg-login {
-  margin-top: 20px;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  padding: 10px;
-  width: 60%;
-  margin-left: auto;
-  margin-right: auto;
-  border-radius: 5px;
-  display: none; /* Hidden by default */
+  margin-top: 10px;
+  color: #1a73e8;
 }
-
-/* Success message styling */
-#msg-login.success {
-  background-color: #d4edda; /* Light green */
-  color: #155724; /* Dark green */
-  border: 2px solid #c3e6cb;
-}
-
-/* Error message styling */
-#msg-login.error {
-  background-color: #f8d7da; /* Light red */
-  color: #721c24; /* Dark red */
-  border: 2px solid #f5c6cb;
-}
-/* Admin Menu and New Plan Button Styling */
-#admin_menu {
-  display: none; /* Hidden by default */
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
-#new_plan_button {
-  display: none; /* Hidden by default */
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  margin-top: 20px;
-}
-
-.big-button {
-  display: block;
-  width: 200px;
-  height: 50px;
-  margin: 0 auto;
-  background-color: #4a4a8e;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 18px;
-  font-weight: bold;
+.menu a:hover {
+  padding-left: 2%;
+  padding-right: 2%;
   cursor: pointer;
-  text-align: center;
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+  background-color: lightgrey;
+  font-weight: bold;
 }
-
-.big-button:hover {
-  background-color: #6565b9;
-}
-
-.big-button:active {
-  background-color: #333366;
+.w:hover{
+  background-color: lightgray;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+  font-weight: bold;
 }

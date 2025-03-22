@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create New Shift</title>
-    <link rel="stylesheet" href="css/shifts.css"> 
+    <title>Shift Management</title>
+    <link rel="stylesheet" href="./css/shifts.css">
 </head>
 <body>
     <div id="menu">
@@ -12,42 +12,64 @@
         <a href="/" id="r" class="w">Home</a>
         <a href="/workstations" class="w">Workstations</a>
         <a href="/newteam" class="w" id="n-t">New Team</a>
-        <a href="/contact" class="w" >Contact</a>
-      </div>
+        <a href="/contact" class="w">Contact</a>
+    </div>
     <hr>
-      <div id="admin_menu">
+    <div id="admin_menu" style="display: none;">
         <a href="/users" class="w">User's</a>
-      </div>
-      
-      <form id="newshift">
-        <h1>Create New Shift</h1> 
-        <h4 id="user_team"></h4>
-        <h4 id="current_user"></h4>
-        <hr>
-    
-        <label for="shiftname">Shift Name:</label>
-        <input type="text" id="shiftname" name="shiftname" required>
-        <br><br>
-    
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <br><br>
-    
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br><br>
-    
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <br><br>
-    
-        <button type="submit">Create Shift</button>
-        <hr>
-        <button type="button" id="cancelButton">Cancel</button> 
-    </form>
-    
+    </div>
+    <div class="form-container">
+        <h1>Shift Management</h1>
+        <form id="newshift">
+            <h4 id="user_team">Team: [Current Team]</h4>
+            <h4 id="current_shift">Shift: [Current Shift]</h4>
+            <h4 id="current_user">User: [Current User]</h4>
+            <hr>
+            
+            <div class="form-group">
+                <label for="shiftname">Shift Name:</label>
+                <input type="text" id="shiftname" name="shiftname" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="button-container">
+                <button type="submit">Create Shift</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>All Shifts</h2>
+        <div class="table-container">
+            <table id="shiftsTable">
+                <thead>
+                    <tr>
+                        <th>Shift Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="shiftsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="msg-login"></div>
-    
 
     <script type="module" src="js/shifts.js"></script> 
 </body>

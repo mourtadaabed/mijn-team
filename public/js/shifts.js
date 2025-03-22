@@ -1,16 +1,10 @@
-// newshift.js (updated with debugging and role restriction)
 import { checkAuth } from './checkAuth.js';
 
 // DOM Elements
-const cancelButton = document.getElementById("cancelButton");
 const shiftForm = document.getElementById("newshift");
 const user_team = document.getElementById("user_team");
 const current_user = document.getElementById("current_user");
-
-// Debugging: Check if elements are found
-console.log({ cancelButton, shiftForm, user_team, current_user });
-if (!shiftForm) console.error("Form element not found!");
-if (!cancelButton) console.error("Cancel button not found!");
+const adminMenu = document.getElementById("admin_menu");
 
 // Initial user data setup
 const userData = storedUser();
@@ -26,15 +20,14 @@ function storedUser() {
 }
 
 function loggedin(userData) {
-  // Check if the user has the "admin" role
-  if (userData.role !== "admin") {
-    window.location.href = "/notAuthorized"; // Redirect non-admin users to notAuthorized page
-    return;
-  }
-
-  // Proceed with page setup for admin users
   user_team.innerText = "For Team: " + userData.team;
   current_user.innerText = "current user: " + userData.name;
+  showAdminFeatures(userData.role);
+
+  if (userData.role !== "admin") {
+    window.location.href = "/notAuthorized";
+    return;
+  }
 }
 
 function NOT_loggedin() {
@@ -43,28 +36,24 @@ function NOT_loggedin() {
   window.location.href = '/login';
 }
 
-// Cancel button event
-if (cancelButton) {
-  cancelButton.addEventListener("click", function () {
-    shiftForm.reset();
-    window.location.href = "/";
-  });
+function showAdminFeatures(userRole) {
+  if (adminMenu) {
+    adminMenu.style.display = userRole === "admin" ? "block" : "none";
+  }
+  if (shiftForm) {
+    shiftForm.style.display = userRole === "admin" ? "block" : "none";
+  }
 }
 
-// Form submission event
 if (shiftForm) {
   shiftForm.addEventListener("submit", async function (event) {
     event.preventDefault();
-    console.log("Form submitted"); // Debug log
-
     const isLoggedIn = await checkAuth(loggedin, NOT_loggedin);
-    console.log("isLoggedIn:", isLoggedIn); // Debug log
     if (!isLoggedIn) return;
 
-    // Double-check role here in case checkAuth doesn't call loggedin immediately
     const currentUser = storedUser();
     if (currentUser.role !== "admin") {
-      window.location.href = "/notAuthorized"; // Redirect non-admin users to notAuthorized page
+      window.location.href = "/notAuthorized";
       return;
     }
 
@@ -73,7 +62,6 @@ if (shiftForm) {
     const password = document.getElementById("password").value.trim();
     const email = document.getElementById("email").value.trim();
 
-    console.log({ shiftname, username, password, email }); // Debug log
     if (!shiftname || !username || !password || !email) {
       alert("Please fill in all fields.");
       return;
@@ -99,9 +87,6 @@ async function sendToServer(user, teamname, shiftname) {
     });
 
     const messageBox = document.getElementById("msg-login");
-    console.log("Response status:", response.status); // Debug log
-
-    // Handle JSON response from server
     const data = await response.json();
     if (response.ok) {
       messageBox.textContent = data.message || "Shift created successfully!";
@@ -121,7 +106,6 @@ async function sendToServer(user, teamname, shiftname) {
 
 // Page initialization
 window.onload = () => {
-  console.log("Window loaded"); // Debug log
   checkAuth(loggedin, NOT_loggedin);
 };
 

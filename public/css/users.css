@@ -138,6 +138,28 @@ th {
     .w:first-child {
         border-left: none; 
       }
-    #menu{
+    #menu {
+    
         text-align: center;
     }
+    #admin_menu {
+    
+        text-align: center;
+    }
+    .menu a:not(:first-child) {
+        border-left: solid;
+      }
+      
+      .menu a:hover {
+        padding-left: 2%;
+        padding-right: 2%;
+        cursor: pointer;
+        background-color: lightgrey;
+        font-weight: bold;
+      }
+      .w:hover{
+        background-color: lightgray;
+        padding-left: 1.5%;
+        padding-right: 1.5%;
+        font-weight: bold;
+      }

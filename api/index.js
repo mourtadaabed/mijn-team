@@ -96,7 +96,7 @@ app.get("/health", (req, res) => {
 // Custom 404 Handler
 app.use((req, res, next) => {
   if (req.method === "GET" && !req.originalUrl.startsWith("/api")) {
-    return res.status(404).sendFile("404.html", { root: path.join(__dirname, "../public") });
+    return res.status(404).sendFile("html/404.html", { root: path.join(__dirname, "../public") });
   }
   res.status(404).json({ error: "Not Found" });
 });
