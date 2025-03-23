@@ -47,7 +47,7 @@ input, select {
 }
 
 button {
-  background-color: #1a73e8;
+  background-color: #4a4a8e;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -57,7 +57,7 @@ button {
 }
 
 button:hover {
-  background-color: #1557b0;
+  background-color: #595e63;
 }
 
 .table-container {
@@ -143,4 +143,36 @@ a {
 
 #user_team {
   text-align: center;
+}
+#new_plan_button {
+  display: block; 
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  margin-top: 20px;
+}
+.big-button {
+  display: block;
+  width: 200px;
+  height: 50px;
+  margin: 0 auto;
+  background-color: #4a4a8e;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+margin-bottom: 20px;
+}
+
+.big-button:hover {
+  background-color: #6565b9;
+}
+
+.big-button:active {
+  background-color: #333366;
 }

@@ -1,10 +1,19 @@
-// DOM Elements
+// DOM Elements (Declared at the top to ensure availability)
 const menuContainer = document.getElementById("menu-container");
 const userTeamDiv = document.getElementById("user_team");
 const usernameDisplay = document.getElementById("usernameDisplay");
 const teamnameDisplay = document.getElementById("teamname");
 const loginButton = document.getElementById("login");
 const adminLinks = document.querySelectorAll(".admin-link");
+const newPlanButtonContainer = document.getElementById("new_plan_button"); // Ensure this is defined here
+
+// New Plan Button Event Listener
+const newPlanButton = document.querySelector("#new_plan_button .big-button");
+if (newPlanButton) {
+  newPlanButton.addEventListener("click", function () {
+    window.location.href = '/proposal';
+  });
+}
 
 // Contact form submission
 document.getElementById('contactForm').addEventListener('submit', function(event) {
@@ -98,6 +107,7 @@ function showUserFeatures(team, shift, username, role) {
     });
     
     userTeamDiv.style.display = "block";
+    newPlanButtonContainer.style.display = "block"; // Show the New Plan button
     loginButton.value = "Uitloggen";
 
     usernameDisplay.textContent = username || "Unknown";
@@ -113,6 +123,7 @@ function hideUserFeatures() {
         link.style.display = "none";
     });
     userTeamDiv.style.display = "none";
+    newPlanButtonContainer.style.display = "none"; // Hide the New Plan button
     loginButton.value = "Aanmelden";
     loginButton.onclick = loginHandler;
 }

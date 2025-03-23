@@ -118,7 +118,12 @@ async function logout() {
     console.error('Error during logout:', error);
   }
 }
-
+const newPlanButton = document.querySelector("#new_plan_button .big-button");
+if (newPlanButton) {
+  newPlanButton.addEventListener("click", function () {
+    window.location.href = '/proposal';
+  });
+}
 // Page initialization
 window.onload = () => {
   checkAuth(loggedin, NOT_loggedin);

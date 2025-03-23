@@ -118,3 +118,22 @@ footer {
     text-align: center;
     padding: 20px;
 }
+#new_plan_button {
+    text-align: center; /* Center the button horizontally */
+    margin: 20px auto; /* Add some spacing and center it */
+    width: 70%; /* Match the width of other centered elements like the menu */
+    display: none; /* Initially hidden */
+}
+
+.big-button {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.big-button:hover {
+    background-color: #555;
+}

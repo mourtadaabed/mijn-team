@@ -230,7 +230,12 @@ async function logout() {
     console.error('Error during logout:', error);
   }
 }
-
+const newPlanButton = document.querySelector("#new_plan_button .big-button");
+if (newPlanButton) {
+  newPlanButton.addEventListener("click", function () {
+    window.location.href = '/proposal';
+  });
+}
 // Cancel Update
 document.getElementById('cancelUpdate').addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
