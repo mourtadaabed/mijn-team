@@ -381,14 +381,7 @@ hr {
   margin-bottom: 10px;
 }
 
-/* Admin Menu and New Plan Button Styling */
-#admin_menu {
-  display: none; /* Hidden by default */
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
+
 
 #new_plan_button {
   display: none; /* Hidden by default */

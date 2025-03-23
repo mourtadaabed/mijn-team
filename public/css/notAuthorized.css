@@ -1,96 +1,84 @@
 body {
-    text-align: center;
-    background-color: #f4f4f9;
-  }
-  
-  a {
-    text-decoration: none;
-    color: black;
-  }
-  
-  .w {
-    padding-left: 5px;
-    padding-right: 5px;
-    border-left: solid 1px;
-  }
-  
-  .w:first-child {
-    border-left: none; 
-  }
-  
-  .w:hover {
-    background-color: lightgray;
-    padding-left: 1.5%;
-    padding-right: 1.5%;
-    font-weight: bold;
-  }
-  
-  hr {
-    width: 70%;
-  }
-  
-  /* Menu Styling */
-  #menu {
-    width: 70%;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-  }
-  
-  /* Admin Menu Styling */
-  #admin_menu {
-    display: none; /* Hidden by default */
-    width: 70%;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-  }
-  
-  /* New Plan Button Styling */
-  #new_plan_button {
-    display: none; /* Hidden by default */
-    width: 70%;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-    margin-top: 20px;
-  }
-  
-  .big-button {
-    display: block;
-    width: 200px;
-    height: 50px;
-    margin: 0 auto;
-    background-color: #4a4a8e;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-  }
-  
-  .big-button:hover {
-    background-color: #6565b9;
-  }
-  
-  .big-button:active {
-    background-color: #333366;
-  }
-  
-  /* Content Styling */
-  #content {
-    margin-top: 100px;
-    margin-bottom: 100px;
-  }
-  
-  #content h1 {
-    font-size: 36px;
-    color: #333;
-    margin: 10px 0;
-  }
-  #login{
-    margin-top: 20px;
-  }
+  text-align: center;
+  background-color: #f4f4f9;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+.w {
+  padding-left: 5px;
+  padding-right: 5px;
+  border-left: solid 1px;
+}
+
+.w:first-child {
+  border-left: none; 
+}
+
+.w:hover {
+  background-color: lightgray;
+  padding-left: 1.5%;
+  padding-right: 1.5%;
+  font-weight: bold;
+}
+
+hr {
+  width: 70%;
+}
+
+#menu {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+#new_plan_button {
+  display: none;
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.big-button {
+  display: block;
+  width: 200px;
+  height: 50px;
+  margin: 0 auto;
+  background-color: #4a4a8e;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.big-button:hover {
+  background-color: #6565b9;
+}
+
+.big-button:active {
+  background-color: #333366;
+}
+
+#content {
+  margin-top: 100px;
+  margin-bottom: 100px;
+}
+
+#content h1 {
+  font-size: 36px;
+  color: #333;
+  margin: 10px 0;
+}
+#login {
+  margin-top: 20px;
+}

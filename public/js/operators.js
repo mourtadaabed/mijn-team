@@ -35,7 +35,7 @@ let role = storedUser()?.role || "teammember";
 // DOM Elements
 const userName = document.getElementById("username");
 const teamName = document.getElementById("teamname");
-const adminMenu = document.getElementById("admin_menu");
+const adminItems = document.querySelectorAll(".admin-item"); // Select all admin menu items
 const newPlanButtonDiv = document.getElementById("new_plan_button");
 const newPlanButton = document.querySelector("#new_plan_button .big-button");
 const logoutButton = document.getElementById("logout");
@@ -67,8 +67,13 @@ function loggedin(userData) {
 
 // Show Admin Features and Always Show Big Button
 function showAdminFeatures(userRole) {
-  adminMenu.style.display = userRole === "admin" ? "block" : "none"; // Admin menu only for admins
-  newPlanButtonDiv.style.display = "block"; // Big button always visible
+  // Show/hide admin menu items
+  adminItems.forEach(item => {
+    item.style.display = userRole === "admin" ? "inline-block" : "none";
+  });
+  
+  // Always show the New Plan button
+  newPlanButtonDiv.style.display = "block";
   
   if (newPlanButton) {
     newPlanButton.addEventListener("click", () => {

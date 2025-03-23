@@ -1,6 +1,5 @@
 /* General body styling */
 body {
-    font-family: Arial, sans-serif;
     background-color: #f4f4f9;
     margin: 0;
     padding: 0;
@@ -9,6 +8,56 @@ body {
     align-items: center;
     height: 100vh;
     color: #333;
+}
+
+/* Menu styling */
+#menu {
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    padding-top: 10px;
+}
+
+#menu a {
+    padding-left: 1%;
+    padding-right: 1%;
+    text-decoration: none;
+    color: black;
+}
+
+#menu a:not(:first-child) {
+    border-left: solid 1px;
+}
+
+#menu a:hover {
+    padding-left: 2%;
+    padding-right: 2%;
+    cursor: pointer;
+    background-color: lightgrey;
+    font-weight: bold;
+}
+
+.w {
+    padding-left: 5px;
+    padding-right: 5px;
+    border-left: solid 1px;
+}
+
+.w:first-child {
+    border-left: none;
+}
+
+.w:hover {
+    background-color: lightgray;
+    padding-left: 1.5%;
+    padding-right: 1.5%;
+    font-weight: bold;
+}
+
+/* Hide admin links by default */
+.admin-link {
+    display: none;
 }
 
 /* Container for the form */
@@ -94,47 +143,48 @@ button[type="submit"]:hover,
 
 /* Button active effect */
 button[type="submit"]:active,
-#cencle:active {
+#cancel:active {
     opacity: 0.8;
 }
-/* Admin Menu and New Plan Button Styling */
-#admin_menu {
-    display: none; /* Hidden by default */
+
+/* Horizontal rule styling */
+hr {
+    width: 70%;
+}
+
+/* User team and auth button styling */
+#user_team {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.log {
     width: 70%;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
-  }
-  
-  #new_plan_button {
-    display: none; /* Hidden by default */
-    width: 70%;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
+    display: flex; /* Use flexbox to center the button */
+    justify-content: center; /* Horizontally center the button */
+}
+
+#auth-button {
     margin-top: 20px;
-  }
-  
-  .big-button {
-    display: block;
-    width: 200px;
-    height: 50px;
-    margin: 0 auto;
+    padding: 10px 20px;
     background-color: #4a4a8e;
     color: white;
     border: none;
-    border-radius: 5px;
-    font-size: 18px;
-    font-weight: bold;
+    border-radius: 4px;
+    font-size: 16px;
     cursor: pointer;
-    text-align: center;
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-  }
-  
-  .big-button:hover {
+    transition: background-color 0.3s ease;
+    display: inline-block; /* Ensure it behaves as a block-level element within flex */
+}
+
+#auth-button:hover {
     background-color: #6565b9;
-  }
-  
-  .big-button:active {
+}
+
+#auth-button:active {
     background-color: #333366;
-  }
+}

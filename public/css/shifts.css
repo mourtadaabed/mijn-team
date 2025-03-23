@@ -17,7 +17,7 @@ body {
 
 h1 {
   text-align: center;
-  color: #1a73e8;
+  color: #080808;
   margin-bottom: 30px;
 }
 
@@ -60,7 +60,7 @@ input {
 }
 
 button {
-  background-color: #1a73e8;
+  background-color: #84888d;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -113,30 +113,6 @@ th {
   border-left: none;
 }
 
-#admin_menu {
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-#admin_menu a {
-  margin: 0 10px;
-  text-decoration: none;
-  color: black;
-  padding-left: 1%;
-  padding-right: 1%;
-}
-
-#admin_menu a.w {
-  border-left: solid 1px black;
-}
-
-#admin_menu a.w:first-child {
-  border-left: none;
-}
-
 hr {
   margin: 10px 0;
   border: 0;
@@ -147,6 +123,7 @@ hr {
   margin-top: 10px;
   color: #1a73e8;
 }
+
 .menu a:hover {
   padding-left: 2%;
   padding-right: 2%;
@@ -154,14 +131,16 @@ hr {
   background-color: lightgrey;
   font-weight: bold;
 }
-.w:hover{
+
+.w:hover {
   background-color: lightgray;
   padding-left: 1.5%;
   padding-right: 1.5%;
   font-weight: bold;
 }
+
 #new_plan_button {
-  display: none; /* Hidden by default */
+  display: none;
   width: 70%;
   margin-left: auto;
   margin-right: auto;
@@ -192,6 +171,7 @@ hr {
 .big-button:active {
   background-color: #333366;
 }
-#user_team{
+
+#user_team {
   text-align: center;
 }

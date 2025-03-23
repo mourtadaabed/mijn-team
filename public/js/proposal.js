@@ -1,5 +1,3 @@
-// proposal.js
-
 import { checkAuth } from './checkAuth.js'; 
 
 // Class Definitions
@@ -7,7 +5,7 @@ class DayStation {
   constructor(stationNumber, stationName, operators, requiredOperators = 1, training = "") {
     this.stationNumber = stationNumber;
     this.stationName = stationName;
-    this.operators = operators; // Can be null, empty array, or array of strings
+    this.operators = operators;
     this.training = training;
     this.requiredOperators = requiredOperators;
   }
@@ -51,6 +49,16 @@ function storedUser() {
   return "no user stored";
 }
 
+// Show or hide admin links based on user role
+function toggleAdminLinks(userData) {
+  const adminLinks = document.querySelectorAll('.admin-link');
+  if (userData.role === "admin") {
+    adminLinks.forEach(link => link.style.display = "inline"); // Show admin links
+  } else {
+    adminLinks.forEach(link => link.style.display = "none"); // Hide admin links
+  }
+}
+
 // Handle Logged-In State
 function loggedin(userData) {
   const user_name = userData.name;
@@ -61,6 +69,9 @@ function loggedin(userData) {
   team_title.innerText = `${team_name}-${shift_name}`;
   userName.innerText = user_name;
   teamName.innerText = `${team_name}-${shift_name}`;
+
+  // Toggle admin links based on role
+  toggleAdminLinks(userData);
 
   fetchOperators(team_name, shift_name)
     .then((fetchedOperators) => {
@@ -231,7 +242,7 @@ async function fetchAttendees(id, attendees, team, shift) {
 
     const dp = await response.json();
     dayplan = dp;
-    copyday = JSON.parse(JSON.stringify(dp)); // Deep copy of original proposal
+    copyday = JSON.parse(JSON.stringify(dp));
     drawtable(dayplan);
 
     return { original: dayplan, copy: copyday };
@@ -483,8 +494,8 @@ async function logout() {
 // Reset to Original Proposal on "Ververs" Click
 document.getElementById("ver").addEventListener("click", function () {
   if (copyday) {
-    console.log("Resetting to copyday:", copyday); // Debug: Check copyday content
-    dayplan = JSON.parse(JSON.stringify(copyday)); // Reset to original proposal
+    console.log("Resetting to copyday:", copyday);
+    dayplan = JSON.parse(JSON.stringify(copyday));
     drawtable(dayplan);
   } else {
     console.error("No original proposal available to revert to.");

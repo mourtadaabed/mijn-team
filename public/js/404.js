@@ -1,5 +1,6 @@
 // DOM Elements
-const adminMenu = document.getElementById("admin_menu");
+const usersLink = document.getElementById("users-link");
+const shiftsLink = document.getElementById("shifts-link");
 const newPlanButtonDiv = document.getElementById("new_plan_button");
 const newPlanButton = document.querySelector("#new_plan_button .big-button");
 const userTeamDiv = document.getElementById("user_team");
@@ -45,7 +46,7 @@ async function checkAuth() {
     if (response.ok) {
       const data = await response.json();
       if (data.isValid) {
-        showAdminFeatures(team, userData.name);
+        showAdminFeatures(team, userData.name, userData.role);
         return true;
       } else {
         await NOT_loggedin();
@@ -70,8 +71,13 @@ function NOT_loggedin() {
 }
 
 // Function to show admin features and set logout
-function showAdminFeatures(team, username) {
-  adminMenu.style.display = "block";
+function showAdminFeatures(team, username, role) {
+  // Show admin items only if user has admin role
+  if (role === 'admin') {  // Adjust this condition based on your actual role system
+    usersLink.style.display = "inline";
+    shiftsLink.style.display = "inline";
+  }
+  
   newPlanButtonDiv.style.display = "block";
   userTeamDiv.style.display = "block";
   loginButton.value = "Uitloggen";
@@ -92,7 +98,8 @@ function showAdminFeatures(team, username) {
 
 // Function to hide admin features and set login
 function hideAdminFeatures() {
-  adminMenu.style.display = "none";
+  usersLink.style.display = "none";
+  shiftsLink.style.display = "none";
   newPlanButtonDiv.style.display = "none";
   userTeamDiv.style.display = "none";
   loginButton.value = "Aanmelden";

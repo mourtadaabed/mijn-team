@@ -1,20 +1,36 @@
 // Import the checkAuth function from the new file
 import { checkAuth } from './checkAuth.js';
 
+// DOM Elements
+const menu = document.getElementById("menu");
+const menuHr = document.getElementById("menu-hr");
+const adminLinks = document.getElementsByClassName("admin-link");
+const userTeamDiv = document.getElementById("user_team"); // Updated to select the div
+const userName = document.getElementById("username");
+const teamNameDisplay = document.getElementById("teamname_display");
+const authButton = document.getElementById("auth-button");
+
 // Handle Not Logged-In State
 function NOT_loggedin() {
   localStorage.removeItem("user");
   document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-  // Only redirect to login if the user was previously logged in
-  if (localStorage.getItem("user")) {
-    window.location.href = '/login';
+  // Hide menu and welcome message, show login button
+  menu.style.display = "none";
+  menuHr.style.display = "none";
+  for (let link of adminLinks) {
+    link.style.display = "none";
   }
+  userTeamDiv.style.display = "none"; // Hide the welcome message div
+  userName.innerText = "";
+  teamNameDisplay.innerText = "";
+  authButton.value = "Login";
+  authButton.style.display = "block";
+  authButton.onclick = () => window.location.href = '/login';
 }
 
 // Handle Logged-In State
 function loggedin(userData) {
-
   const newUserFields = document.getElementById('newUserFields');
   const userInfo = document.getElementById('userInfo');
   const currentUser = document.getElementById('current_user');
@@ -33,11 +49,45 @@ function loggedin(userData) {
   userInfo.style.display = 'block';
   currentUser.textContent = userData.name || "Unknown";
   userTeam.textContent = `${teamname} - Shift: ${shiftname}${userData.role ? ` (Role: ${userData.role})` : ''}`;
+
+  // Show menu and handle admin links visibility
+  menu.style.display = "block";
+  menuHr.style.display = "block";
+  const isAdmin = userData.role === "admin";
+  for (let link of adminLinks) {
+    link.style.display = isAdmin ? "inline" : "none";
+  }
+
+  // Update welcome message and show logout button
+  userTeamDiv.style.display = "block"; // Show the welcome message div
+  userName.innerText = userData.name || "Unknown";
+  teamNameDisplay.innerText = `${userData.team} - Shift: ${userData.shift}`;
+  authButton.value = "Uitloggen"; // Dutch for "Logout"
+  authButton.style.display = "block";
+  authButton.onclick = logout;
+}
+
+// Logout Function
+async function logout() {
+  try {
+    const response = await fetch('/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (response.ok) {
+      localStorage.removeItem("user");
+      document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      window.location.href = '/';
+    } else {
+      console.error('Logout failed:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
 }
 
 // Adjust form and display user info based on login status
 document.addEventListener('DOMContentLoaded', async function () {
-
   // Check authentication status
   await checkAuth(loggedin, NOT_loggedin);
 

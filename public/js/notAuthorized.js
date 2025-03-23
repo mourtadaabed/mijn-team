@@ -1,17 +1,17 @@
 // DOM Elements
-const adminMenu = document.getElementById("admin_menu");
 const newPlanButtonDiv = document.getElementById("new_plan_button");
 const newPlanButton = document.querySelector("#new_plan_button .big-button");
 const userTeamDiv = document.getElementById("user_team");
 const usernameDisplay = document.getElementById("usernameDisplay");
 const teamnameDisplay = document.getElementById("teamname");
 const loginButton = document.getElementById("login");
+const adminLinks = document.querySelectorAll(".admin-link");
 
 // Function to get stored user data
 function storedUser() {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
-    return JSON.parse(storedUser); // Expecting { name, team_shift, role } or { name, team, shift, role }
+    return JSON.parse(storedUser);
   }
   return null;
 }
@@ -20,13 +20,11 @@ function storedUser() {
 async function checkAuth() {
   const userData = storedUser();
 
-  // Check if essential user data is missing
   if (!userData || !userData.name || (!userData.team_shift && (!userData.team || !userData.shift)) || !userData.role) {
     await NOT_loggedin();
     return false;
   }
 
-  // Construct team_shift if team and shift are separate
   const teamShift = userData.team_shift || `${userData.team}-${userData.shift}`;
   const [team, shift] = teamShift.split('-');
   try {
@@ -37,7 +35,7 @@ async function checkAuth() {
     };
     const response = await fetch('/verify-user', {
       method: 'POST',
-      credentials: 'include', // Include cookies (e.g., jwt_token)
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
@@ -45,7 +43,7 @@ async function checkAuth() {
     if (response.ok) {
       const data = await response.json();
       if (data.isValid) {
-        showAdminFeatures(team, shift, userData.name, userData.role); // Pass team and shift separately
+        showAdminFeatures(team, shift, userData.name, userData.role);
         return true;
       } else {
         console.log('User verification failed (isValid: false), redirecting to login');
@@ -73,37 +71,37 @@ function NOT_loggedin() {
 
 // Function to show admin features based on role
 function showAdminFeatures(team, shift, username, role) {
-  // Show admin menu only for admin role
-  adminMenu.style.display = role === "admin" ? "block" : "none";
+  // Show admin links only for admin role
+  adminLinks.forEach(link => {
+    link.style.display = role === "admin" ? "inline" : "none";
+  });
   
   // Show these elements for all logged-in users
   newPlanButtonDiv.style.display = "block";
   userTeamDiv.style.display = "block";
   loginButton.value = "Uitloggen";
 
-  // Display user info with team and shift
   usernameDisplay.textContent = username || "Unknown";
   teamnameDisplay.textContent = `${team || "No Team"} - Shift: ${shift || "No Shift"}`;
 
-  // Attach New Plan button listener
   if (newPlanButton) {
     newPlanButton.addEventListener("click", function () {
       window.location.href = '/proposal';
     });
   }
 
-  // Attach logout handler
   loginButton.onclick = logout;
 }
 
 // Function to hide admin features and set login
 function hideAdminFeatures() {
-  adminMenu.style.display = "none";
+  adminLinks.forEach(link => {
+    link.style.display = "none";
+  });
   newPlanButtonDiv.style.display = "none";
   userTeamDiv.style.display = "none";
   loginButton.value = "Aanmelden";
 
-  // Attach login handler
   loginButton.onclick = loginHandler;
 }
 
@@ -123,7 +121,7 @@ async function logout() {
     if (response.ok) {
       document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       localStorage.removeItem("user");
-      window.location.href = '/'; // Redirect to homepage
+      window.location.href = '/';
     } else {
       console.error('Logout failed:', response.statusText);
     }

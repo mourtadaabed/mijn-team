@@ -37,14 +37,6 @@ hr {
   text-align: center;
 }
 
-/* Admin Menu Styling */
-#admin_menu {
-  display: none; /* Hidden by default */
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
 
 /* New Plan Button Styling */
 #new_plan_button {

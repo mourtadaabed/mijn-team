@@ -1,53 +1,52 @@
-
-body{
+body {
   text-align: center;
   background-color: #f4f4f9;
 }
+
 a {
   text-decoration: none;
   color: black;
 }
-.w{
+
+.w {
   padding-left: 5px;
   padding-right: 5px;
   border-left: solid 1px;
 }
+
 .w:first-child {
-  border-left: none; 
+  border-left: none;
 }
-.w:hover{
+
+.w:hover {
   background-color: lightgray;
   padding-left: 1.5%;
   padding-right: 1.5%;
   font-weight: bold;
 }
-hr{
+
+hr {
   width: 70%;
-}
-/* General link styling */
-a {
-  text-decoration: none;
-  color: inherit;
 }
 
 /* Menu styling */
-.menu, .log {
+#menu {
   width: 70%;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
 }
 
-.menu a {
+#menu a {
   padding-left: 1%;
   padding-right: 1%;
 }
 
-.menu a:not(:first-child) {
-  border-left: solid;
+#menu a:not(:first-child) {
+  border-left: solid 1px;
 }
 
-.menu a:hover {
+#menu a:hover {
   padding-left: 2%;
   padding-right: 2%;
   cursor: pointer;
@@ -55,9 +54,9 @@ a {
   font-weight: bold;
 }
 
-/* Highlight the "operators" link */
-.o {
-  background-color: #dddddd;
+/* Hide admin links by default */
+.admin-link {
+  display: none;
 }
 
 /* Horizontal rule styling */
@@ -84,48 +83,42 @@ th, td {
 tr:nth-child(odd) {
   background-color: #dddddd;
 }
-#niew-post{
+
+#niew-post {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
   width: 70%;
-  background-color:lightgray;
-}
-#niew-post h3{
-padding-top: 20px;
-
+  background-color: lightgray;
 }
 
-
-.d_en_v:hover{
-cursor: pointer;
-font-weight:bold;
-/***text-align: center;
-*/
+#niew-post h3 {
+  padding-top: 20px;
 }
-#bewerkform{
+
+.d_en_v:hover {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#bewerkform {
   padding-bottom: 15px;
 }
 
-#logout{
+#logout {
   margin-top: 20px;
 }
-#user_team{
+
+#user_team {
   margin-top: 10px;
   margin-bottom: 10px;
 }
-#edit-station_div{
+
+#edit-station_div {
   display: none;
 }
-/* Admin Menu and New Plan Button Styling */
-#admin_menu {
-  display: none; /* Hidden by default */
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
 
+/* New Plan Button Styling */
 #new_plan_button {
   display: none; /* Hidden by default */
   width: 70%;

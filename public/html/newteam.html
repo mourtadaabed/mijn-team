@@ -7,6 +7,15 @@
     <link rel="stylesheet" href="css/newteam.css">
 </head>
 <body>
+    <div id="menu" style="display: none;">
+        <a href="/operators" class="w">Operators</a>
+        <a href="/" id="r" class="w">Home</a>
+        <a href="/contact" class="w">Contact</a>
+        <a href="/users" class="w admin-link" id="users-link">User's</a>
+        <a href="/shifts" class="w admin-link" id="shifts-link">Shift's</a>
+    </div>
+    <hr id="menu-hr" style="display: none;">
+    
     <h1>Creating New Team</h1>
     <form id="teamForm">
         <!-- New User Fields (hidden for logged-in users) -->
@@ -41,6 +50,12 @@
         <hr>
         <button type="button" id="cancel">Cancel</button>
     </form>
+
+    <div id="user_team" style="display: none;">Welkom: <span id="username"></span> , Your Team is: <span id="teamname_display"></span></div>
+    <div class="log">
+      <input type="button" id="auth-button" value="Login">
+    </div>
+
     <script type="module" src="js/newteam.js"></script>
 </body>
 </html>

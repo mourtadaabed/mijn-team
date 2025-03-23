@@ -2,7 +2,7 @@ import { checkAuth } from './checkAuth.js';
 
 // DOM Elements
 const shiftForm = document.getElementById("newshift");
-const adminMenu = document.getElementById("admin_menu");
+const adminLink = document.getElementById("admin-link");
 const userName = document.getElementById("un");
 const teamName = document.getElementById("teamname");
 
@@ -30,8 +30,8 @@ function NOT_loggedin() {
 }
 
 function showAdminFeatures(userRole) {
-  if (adminMenu) {
-    adminMenu.style.display = userRole === "admin" ? "block" : "none";
+  if (adminLink) {
+    adminLink.style.display = userRole === "admin" ? "inline" : "none";
   }
   if (shiftForm) {
     shiftForm.style.display = userRole === "admin" ? "block" : "none";

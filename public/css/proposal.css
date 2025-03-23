@@ -1,7 +1,6 @@
 /* General body styling */
 body {
   text-align: center;
-  
 }
 
 /* Remove underline from all links */
@@ -11,7 +10,7 @@ a {
 }
 
 /* Menu and log styling */
-.menu,
+#menu,
 .log {
   width: 70%;
   margin-left: auto;
@@ -41,6 +40,11 @@ a {
 .r,
 .w {
   border-left: solid;
+}
+
+/* Hide admin links by default */
+.admin-link {
+  display: none; /* Hidden unless user is admin */
 }
 
 /* Form styling */
@@ -137,11 +141,11 @@ tr:nth-child(odd) {
 
 #maintable ul li span {
   cursor: pointer;
-  color: black; /* Changed from blue to black */
+  color: black;
 }
 
 #maintable ul li span:hover {
-  color: #333; /* Darker gray for hover effect (instead of darkblue) */
+  color: #333;
 }
 
 .d_en_v {
@@ -260,45 +264,4 @@ a {
 #user_team {
   margin-top: 10px;
   margin-bottom: 10px;
-}
-/* Admin Menu and New Plan Button Styling */
-#admin_menu {
-  display: none; /* Hidden by default */
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
-#new_plan_button {
-  display: none; /* Hidden by default */
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  margin-top: 20px;
-}
-
-.big-button {
-  display: block;
-  width: 200px;
-  height: 50px;
-  margin: 0 auto;
-  background-color: #4a4a8e;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  text-align: center;
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-}
-
-.big-button:hover {
-  background-color: #6565b9;
-}
-
-.big-button:active {
-  background-color: #333366;
 }

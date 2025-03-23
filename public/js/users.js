@@ -72,12 +72,12 @@ async function displayUsers() {
 
 // Show Admin Features
 function showAdminFeatures(userRole) {
-  const adminMenu = document.getElementById("admin_menu"); // Assuming an admin menu exists
-  if (adminMenu) {
-    adminMenu.style.display = userRole === "admin" ? "block" : "none"; // Admin menu only for admins
+  const adminLink = document.getElementById("admin-shifts"); // Target the admin-specific link
+  if (adminLink) {
+    adminLink.style.display = userRole === "admin" ? "inline" : "none"; // Show/hide admin link
   }
   
-  // Example: Hide action buttons (Update/Delete) for non-admins
+  // Hide action buttons (Update/Delete) for non-admins
   const actionButtons = document.querySelectorAll('.action-buttons');
   actionButtons.forEach(buttonGroup => {
     buttonGroup.style.display = userRole === "admin" ? "block" : "none";
@@ -96,12 +96,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     role = userData.role;
     showAdminFeatures(role);
     const userName = document.getElementById("username");
-const teamName = document.getElementById("teamname");
-userName.innerText = userData.name;
-teamName.innerText = `${userData.team}-${userData.shift}`;
+    const teamName = document.getElementById("teamname");
+    userName.innerText = userData.name;
+    teamName.innerText = `${userData.team}-${userData.shift}`;
   }
 });
-
 
 // Create User
 document.getElementById('createUserForm').addEventListener('submit', async (e) => {
@@ -112,7 +111,7 @@ document.getElementById('createUserForm').addEventListener('submit', async (e) =
     role: document.getElementById('createRole').value,
     email: document.getElementById('createEmail').value,
     password: document.getElementById('createPassword').value,
-    teamname: document.getElementById('createTeamname').value || "default_team"
+    teamname: document.getElementById('createTeamname')?.value || "default_team"
   };
 
   try {
@@ -173,7 +172,6 @@ async function showUpdateModal(username) {
     populateShiftDropdown(updateShiftSelect, user.shift);
     document.getElementById('updateRole').value = user.role || '';
     document.getElementById('updateEmail').value = user.email || '';
-    document.getElementById('updateTeamname').value = "default_team";
     document.getElementById('updatePassword').value = '';
     document.getElementById('updateModal').style.display = 'block';
 
@@ -184,7 +182,7 @@ async function showUpdateModal(username) {
         role: document.getElementById('updateRole').value,
         email: document.getElementById('updateEmail').value,
         password: document.getElementById('updatePassword').value || undefined,
-        teamname: document.getElementById('updateTeamname').value || "default_team"
+        teamname: document.getElementById('updateTeamname')?.value || "default_team"
       };
 
       try {
@@ -210,8 +208,10 @@ async function showUpdateModal(username) {
     console.log('Failed to load user data: ' + error.message);
   }
 }
+
 const logoutButton = document.getElementById("logout");
 logoutButton.onclick = logout;
+
 // Logout Function
 async function logout() {
   try {
@@ -231,10 +231,10 @@ async function logout() {
   }
 }
 
-
 // Cancel Update
 document.getElementById('cancelUpdate').addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
 });
+
 const current_team = document.getElementById("current_team");
-current_team.innerHTML="Team : "+storedUser().team;
+current_team.innerHTML = "Team : " + (storedUser()?.team || "N/A");

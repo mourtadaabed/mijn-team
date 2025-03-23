@@ -7,6 +7,19 @@
     <link rel="stylesheet" href="/css/contact.css">
 </head>
 <body>
+    <div id="menu-container" style="display: none;">
+        <div id="menu">
+            <a href="/operators" class="w">Operators</a>
+            <a href="/" id="r" class="w">Home</a>
+            <a href="/workstations" class="w">Workstations</a>
+            <a href="/newteam" class="w" id="n-t">New Team</a>
+            <a href="/users" class="w admin-link" style="display: none;">User's</a>
+            <a href="/shifts" class="w admin-link" style="display: none;">Shift's</a>
+        </div>
+        <hr>
+    </div>
+
+
     <header>
         <h1>Contact Us</h1>
     </header>
@@ -28,6 +41,17 @@
         </form>
         <div id="responseMessage"></div>
     </main>
+    <div id="user_team" style="display: none;">
+        Welcome: <span id="usernameDisplay"></span>, Your Team is: <span id="teamname"></span>
+    </div>
+    <div class="log">
+        <input type="button" id="login" value="Aanmelden">
+    </div>
+    <footer>
+        <hr>
+        <p>© 2025 Arabila. All rights reserved.</p>
+    </footer>
+
     <script src="/js/contact.js"></script>
 </body>
 </html>

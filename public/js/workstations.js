@@ -15,7 +15,8 @@ class Station {
 const table = document.getElementById("maintable");
 const userName = document.getElementById("username");
 const teamName = document.getElementById("teamname");
-const adminMenu = document.getElementById("admin_menu");
+const menu = document.getElementById("menu");
+const adminLinks = document.getElementsByClassName("admin-link");
 const newPlanButtonDiv = document.getElementById("new_plan_button");
 const newPlanButton = document.querySelector("#new_plan_button .big-button");
 const logoutButton = document.getElementById("logout");
@@ -32,9 +33,13 @@ function loggedin(userData) {
   const team_n = userData.team;
   teamName.innerText = `${userData.team} - Shift: ${userData.shift}`;
 
-  // Configure UI elements
-  adminMenu.style.display = userData.role === "admin" ? "block" : "none"; // Admin menu only for admins
-  newPlanButtonDiv.style.display = "block"; // Big button always visible
+  // Show/hide admin links based on role
+  const isAdmin = userData.role === "admin";
+  for (let link of adminLinks) {
+    link.style.display = isAdmin ? "inline" : "none";
+  }
+  
+  newPlanButtonDiv.style.display = "block";
   
   if (newPlanButton) {
     newPlanButton.addEventListener("click", () => {
