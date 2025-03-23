@@ -2,22 +2,9 @@ import { checkAuth } from './checkAuth.js';
 
 // DOM Elements
 const shiftForm = document.getElementById("newshift");
-const user_team = document.getElementById("userteam");
-const current_user = document.getElementById("current_user");
-const current_shift = document.getElementById("current_shift");
 const adminMenu = document.getElementById("admin_menu");
-
 const userName = document.getElementById("un");
 const teamName = document.getElementById("teamname");
-
-
-// Initial user data setup
-const userData = storedUser();
-const teamShift = userData?.team_shift || (userData?.team && userData?.shift ? `${userData.team}-${userData.shift}` : "No Team-No Shift");
-const [teamname, shift] = teamShift.split('-');
-const user = userData?.name || "Unknown";
-user_team.innerText = "For Team: " + teamname;
-current_user.innerText = "current user: " + user;
 
 function storedUser() {
   const storedUser = localStorage.getItem("user");
@@ -25,10 +12,6 @@ function storedUser() {
 }
 
 function loggedin(userData) {
-  user_team.innerText = "Team: " + userData.team;
-  current_shift.innerText = "Shift: " + userData.shift;
-  current_user.innerText = "User: " + userData.name;
-
   userName.innerText = userData.name;
   teamName.innerText = `${userData.team}-${userData.shift}`;
 
@@ -77,7 +60,7 @@ if (shiftForm) {
       return;
     }
 
-    await sendToServer({ username, password, email }, teamname, shiftname);
+    await sendToServer({ username, password, email }, currentUser.team, shiftname);
   });
 }
 
@@ -113,8 +96,10 @@ async function sendToServer(user, teamname, shiftname) {
     messageBox.style.color = "red";
   }
 }
+
 const logoutButton = document.getElementById("logout");
 logoutButton.onclick = logout;
+
 // Logout Function
 async function logout() {
   try {
@@ -133,6 +118,7 @@ async function logout() {
     console.error('Error during logout:', error);
   }
 }
+
 // Page initialization
 window.onload = () => {
   checkAuth(loggedin, NOT_loggedin);
