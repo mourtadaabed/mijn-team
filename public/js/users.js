@@ -1,44 +1,55 @@
-// Import checkAuth if available, or assume a similar mechanism exists
-// For this example, I'll simulate it with a utility function
+const createShiftSelect = document.getElementById('createShift');
+
 function storedUser() {
   const storedUser = localStorage.getItem("user");
   return storedUser ? JSON.parse(storedUser) : null;
 }
 
-// Global variable for user role
-let role = storedUser()?.role || "teammember"; // Default to "teammember" if no user data
+const userData = storedUser();
+let role = userData?.role;
+let currentTeam = userData?.team;
 
-// Function to populate shift dropdowns
-async function populateShiftDropdown(selectElement, selectedValue = null) {
+fetchTeamShifts(currentTeam);
+
+async function fetchTeamShifts(teamName) {
   try {
-    const response = await fetch('/shifts_list');
-    const availableShifts = await response.json();
-    
-    selectElement.innerHTML = '';
-    availableShifts.forEach(shift => {
-      const option = document.createElement('option');
-      option.value = shift;
-      option.textContent = shift;
-      if (shift === selectedValue) option.selected = true;
-      selectElement.appendChild(option);
+    if (!teamName) {
+      throw new Error("No team name provided");
+    }
+    const response = await fetch(`/shifts_list?team=${encodeURIComponent(teamName)}`, {
+      signal: AbortSignal.timeout(10000), // Timeout after 10 seconds
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data; // Array of shift names
   } catch (error) {
-    console.error('Error fetching shifts:', error);
-    const fallbackShifts = ["Aaa", "B", "N", "W"];
-    fallbackShifts.forEach(shift => {
-      const option = document.createElement('option');
-      option.value = shift;
-      option.textContent = shift;
-      if (shift === selectedValue) option.selected = true;
-      selectElement.appendChild(option);
-    });
+    console.error('Error fetching shifts:', error.message);
+    return [];
   }
 }
 
-// Function to fetch and display users
-async function displayUsers() {
+function populateShiftDropdown(selectElement, shifts, selectedShift) {
+  selectElement.innerHTML = '';
+  shifts.forEach(shift => {
+    const option = document.createElement('option');
+    option.value = shift;
+    option.textContent = shift;
+    if (shift === selectedShift) option.selected = true; // Pre-select the current shift
+    selectElement.appendChild(option);
+  });
+}
+
+async function displayUsers(teamName) {
   try {
-    const response = await fetch('/users', {
+    if (!teamName) {
+      throw new Error("Team name is required");
+    }
+    const url = `/users_of_team?team=${encodeURIComponent(teamName)}`;
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include'
@@ -56,14 +67,15 @@ async function displayUsers() {
           <td>${user.role || 'N/A'}</td>
           <td>${user.email}</td>
           <td class="action-buttons">
-            <button onclick="showUpdateModal('${user.username}')">Update</button>
-            <button class="delete-btn" onclick="deleteUser('${user.username}')">Delete</button>
+            <button onclick="showUpdateModal('${user.username}', '${teamName}', '${user.shift}')">Update</button>
+            <button class="delete-btn" onclick="deleteUser('${user.username}', '${teamName}', '${user.shift}')">Delete</button>
           </td>
         </tr>
       `;
       tableBody.innerHTML += row;
     });
-    showAdminFeatures(role); // Call to update visibility after loading users
+    
+    showAdminFeatures(role);
   } catch (error) {
     console.error('Error fetching users:', error);
     console.log('Failed to load users: ' + error.message);
@@ -72,12 +84,11 @@ async function displayUsers() {
 
 // Show Admin Features
 function showAdminFeatures(userRole) {
-  const adminLink = document.getElementById("admin-shifts"); // Target the admin-specific link
+  const adminLink = document.getElementById("admin-shifts");
   if (adminLink) {
-    adminLink.style.display = userRole === "admin" ? "inline" : "none"; // Show/hide admin link
+    adminLink.style.display = userRole === "admin" ? "inline" : "none";
   }
   
-  // Hide action buttons (Update/Delete) for non-admins
   const actionButtons = document.querySelectorAll('.action-buttons');
   actionButtons.forEach(buttonGroup => {
     buttonGroup.style.display = userRole === "admin" ? "block" : "none";
@@ -86,23 +97,24 @@ function showAdminFeatures(userRole) {
 
 // Populate shift dropdown and load users on page load
 document.addEventListener('DOMContentLoaded', async () => {
-  const createShiftSelect = document.getElementById('createShift');
-  await populateShiftDropdown(createShiftSelect);
-  await displayUsers();
+  if (currentTeam) {
+    const shifts = await fetchTeamShifts(currentTeam);
+    if (shifts) populateShiftDropdown(createShiftSelect, shifts, userData?.shift);
+    await displayUsers(currentTeam);
+  }
 
-  // Simulate fetching current user role (replace with actual auth logic if available)
-  const userData = storedUser();
   if (userData) {
     role = userData.role;
     showAdminFeatures(role);
     const userName = document.getElementById("username");
     const teamName = document.getElementById("teamname");
-    userName.innerText = userData.name;
-    teamName.innerText = `${userData.team}-${userData.shift}`;
+    if (userName) userName.innerText = userData.name;
+    if (teamName) teamName.innerText = `${userData.team}-${userData.shift}`;
   }
 });
 
-// Create User
+
+
 document.getElementById('createUserForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const newUser = {
@@ -111,7 +123,7 @@ document.getElementById('createUserForm').addEventListener('submit', async (e) =
     role: document.getElementById('createRole').value,
     email: document.getElementById('createEmail').value,
     password: document.getElementById('createPassword').value,
-    teamname: document.getElementById('createTeamname')?.value || "default_team"
+    teamname: document.getElementById('createTeamname')?.value || currentTeam
   };
 
   try {
@@ -121,86 +133,105 @@ document.getElementById('createUserForm').addEventListener('submit', async (e) =
       credentials: 'include',
       body: JSON.stringify(newUser)
     });
-    const data = await response.json();
-    if (!data.success) throw new Error(data.message);
 
-    console.log(data.message);
-    displayUsers();
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Unknown error occurred');
+    }
+
+    displayUsers(currentTeam);
     e.target.reset();
-    populateShiftDropdown(document.getElementById('createShift'));
   } catch (error) {
-    console.error('Error creating user:', error);
-    console.log('Failed to create user: ' + error.message);
+    console.error('Error creating user:', error); // Full error object for debugging
+    alert('Failed to create user: ' + error.message); // Show user-friendly message
   }
 });
 
-// Delete User
-async function deleteUser(username) {
-  if (!confirm('Are you sure you want to delete this user?')) return;
+
+
+
+// Delete a specific team_shift from a user's team_shifts array
+async function deleteUser(username, teamName, shift) {
+  if (!confirm(`Are you sure you want to delete ${username}'s ${teamName}-${shift} assignment?`)) return;
 
   try {
-    const response = await fetch(`/api/users/${username}`, {
+    const response = await fetch(`/api/users/team_shift`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include'
+      credentials: 'include',
+      body: JSON.stringify({ username, team: teamName, shift })
     });
     const data = await response.json();
     if (!data.success) throw new Error(data.message);
-
-    console.log(data.message);
-    displayUsers();
+    
+    displayUsers(teamName);
   } catch (error) {
-    console.error('Error deleting user:', error);
-    console.log('Failed to delete user: ' + error.message);
+    console.error('Error deleting team_shift:', error);
+    console.log('Failed to delete team_shift: ' + error.message);
   }
 }
 
-// Update User
-async function showUpdateModal(username) {
+// Update User Modal
+async function showUpdateModal(username, teamName, shift) {
+
   try {
     const response = await fetch(`/api/users/${username}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include'
     });
+
     const data = await response.json();
-    if (!data.success) throw new Error(data.message);
+    if (!data.success) throw new Error(data.message || 'Unknown error fetching user');
 
     const user = data.user;
+    const teamShift = user.team_shifts.find(ts => ts.team_shift === `${teamName}-${shift}`);
+    if (!teamShift) {
+      throw new Error(`Team shift ${teamName}-${shift} not found for user ${username}`);
+    }
+
     document.getElementById('updateUsername').value = user.username;
     const updateShiftSelect = document.getElementById('updateShift');
-    populateShiftDropdown(updateShiftSelect, user.shift);
-    document.getElementById('updateRole').value = user.role || '';
+    
+    // Fetch team-specific shifts and populate the dropdown
+    const teamShifts = await fetchTeamShifts(teamName);
+    if (teamShifts && teamShifts.length > 0) {
+      populateShiftDropdown(updateShiftSelect, teamShifts, shift);
+    } else {
+      updateShiftSelect.innerHTML = '<option value="">No shifts available</option>';
+    }
+
+    document.getElementById('updateRole').value = teamShift.role || '';
     document.getElementById('updateEmail').value = user.email || '';
     document.getElementById('updatePassword').value = '';
     document.getElementById('updateModal').style.display = 'block';
 
     document.getElementById('updateUserForm').onsubmit = async (e) => {
       e.preventDefault();
-      const updatedUser = {
+      const updatedTeamShift = {
+        username,
+        team: teamName,
         shift: document.getElementById('updateShift').value,
         role: document.getElementById('updateRole').value,
         email: document.getElementById('updateEmail').value,
-        password: document.getElementById('updatePassword').value || undefined,
-        teamname: document.getElementById('updateTeamname')?.value || "default_team"
+        password: document.getElementById('updatePassword').value || undefined
       };
 
       try {
-        const updateResponse = await fetch(`/api/users/${username}`, {
+
+        const updateResponse = await fetch(`/api/users/team_shift`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify(updatedUser)
+          body: JSON.stringify(updatedTeamShift)
         });
         const updateData = await updateResponse.json();
         if (!updateData.success) throw new Error(updateData.message);
-
-        console.log(updateData.message);
-        displayUsers();
+        displayUsers(teamName);
         document.getElementById('updateModal').style.display = 'none';
       } catch (error) {
-        console.error('Error updating user:', error);
-        console.log('Failed to update user: ' + error.message);
+        console.error('Error updating team_shift:', error);
+        console.log('Failed to update team_shift: ' + error.message);
       }
     };
   } catch (error) {
@@ -208,9 +239,6 @@ async function showUpdateModal(username) {
     console.log('Failed to load user data: ' + error.message);
   }
 }
-
-const logoutButton = document.getElementById("logout");
-logoutButton.onclick = logout;
 
 // Logout Function
 async function logout() {
@@ -230,16 +258,23 @@ async function logout() {
     console.error('Error during logout:', error);
   }
 }
+
+const logoutButton = document.getElementById("logout");
+if (logoutButton) logoutButton.onclick = logout;
+
 const newPlanButton = document.querySelector("#new_plan_button .big-button");
 if (newPlanButton) {
   newPlanButton.addEventListener("click", function () {
     window.location.href = '/proposal';
   });
 }
+
 // Cancel Update
 document.getElementById('cancelUpdate').addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
 });
 
 const current_team = document.getElementById("current_team");
-current_team.innerHTML = "Team : " + (storedUser()?.team || "N/A");
+if (current_team) {
+  current_team.innerHTML = "Team : " + (storedUser()?.team || "N/A");
+}
