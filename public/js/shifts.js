@@ -5,11 +5,18 @@ const shiftForm = document.getElementById("newshift");
 const adminLink = document.getElementById("admin-link");
 const userName = document.getElementById("un");
 const teamName = document.getElementById("teamname");
+const shiftsBody = document.getElementById("shiftsBody");
 
 function storedUser() {
   const storedUser = localStorage.getItem("user");
   return storedUser ? JSON.parse(storedUser) : null;
 }
+let currentTeam  = storedUser().team;
+let currentRole = storedUser().role;
+const logoutButton = document.getElementById("logout");
+logoutButton.onclick = logout;
+
+
 
 function loggedin(userData) {
   userName.innerText = userData.name;
@@ -60,11 +67,13 @@ if (shiftForm) {
       return;
     }
 
-    await sendToServer({ username, password, email }, currentUser.team, shiftname);
+    await creatnewshift({ username, password, email }, currentUser.team, shiftname);
   });
 }
 
-async function sendToServer(user, teamname, shiftname) {
+
+
+async function creatnewshift(user, teamname, shiftname) {
   try {
     const response = await fetch("/newShift", {
       method: "POST",
@@ -97,8 +106,121 @@ async function sendToServer(user, teamname, shiftname) {
   }
 }
 
-const logoutButton = document.getElementById("logout");
-logoutButton.onclick = logout;
+
+
+
+
+
+// Function to fetch and display all shifts
+async function fetchAndDisplayShifts() {
+  try {
+    // Get the team name from stored user data
+    const currentUser = storedUser(); // Assuming storedUser() retrieves the logged-in user
+    if (!currentUser || !currentUser.team) {
+      throw new Error("No team name available for the current user");
+    }
+    // Send the team name as a query parameter in the URL
+    const response = await fetch(`/shifts_of_team?teamname=${encodeURIComponent(currentTeam)}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // Include cookies for authentication
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Fetch failed with status:", response.status, "Response:", errorText);
+      throw new Error("Failed to fetch shifts");
+    }
+
+    const data = await response.json();
+    console.log("Fetched shifts for team", teamName, ":", data.shifts);
+    populateShiftsTable(data.shifts); // Assuming the backend returns { shifts: [...] }
+  } catch (error) {
+    console.error("Error fetching shifts:", error);
+    shiftsBody.innerHTML = "<tr><td colspan='4'>Error loading shifts</td></tr>";
+  }
+}
+
+
+
+
+
+
+// Function to populate the shifts table
+function populateShiftsTable(shifts) {
+  shiftsBody.innerHTML = ""; // Clear existing rows
+
+  if (!shifts || shifts.length === 0) {
+    shiftsBody.innerHTML = "<tr><td colspan='4'>No shifts available</td></tr>";
+    return;
+  }
+
+  shifts.forEach((shift) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${shift.shiftname || "N/A"}</td>
+      <td>${shift.username || "N/A"}</td>
+      <td>${shift.role || "N/A"}</td> <!-- Changed from email to role -->
+      <td><button class="delete-shift" data-shift="${shift.shiftname}" data-team="${shift.teamname}">Delete</button></td>
+    `;
+    shiftsBody.appendChild(row);
+  });
+
+  // Add event listeners for delete buttons
+  document.querySelectorAll(".delete-shift").forEach((button) => {
+    button.addEventListener("click", async (e) => {
+      const shiftname = e.target.dataset.shift;
+      const teamname = e.target.dataset.team;
+      await deleteShift(shiftname, teamname,currentRole);
+    });
+  });
+}
+
+
+
+
+// Function to delete a shift (if you want this feature)
+async function deleteShift(shiftname, teamname,role) {
+  if (!confirm(`Are you sure you want to delete shift '${shiftname}' from team '${teamname}'?`)) return;
+
+  try {
+    const response = await fetch("/deleteShift", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ shiftname, teamname,role }),
+    });
+
+    const data = await response.json();
+    const messageBox = document.getElementById("msg-login");
+    if (response.ok) {
+      messageBox.textContent = data.message || "Shift deleted successfully!";
+      messageBox.style.color = "green";
+      fetchAndDisplayShifts(); // Refresh the table
+    } else {
+      messageBox.textContent = data.message || "Failed to delete shift.";
+      messageBox.style.color = "red";
+    }
+  } catch (error) {
+    console.error("Error deleting shift:", error);
+    const messageBox = document.getElementById("msg-login");
+    messageBox.textContent = "Network error. Please try again.";
+    messageBox.style.color = "red";
+  }
+}
+
+
+
+
+// Update the page initialization to fetch shifts after login
+window.onload = () => {
+  checkAuth(loggedin, NOT_loggedin).then((isLoggedIn) => {
+    if (isLoggedIn) {
+      fetchAndDisplayShifts(); // Fetch shifts after confirming user is logged in
+    }
+  });
+};
+
 
 // Logout Function
 async function logout() {
@@ -124,10 +246,7 @@ if (newPlanButton) {
     window.location.href = '/proposal';
   });
 }
-// Page initialization
-window.onload = () => {
-  checkAuth(loggedin, NOT_loggedin);
-};
+
 
 window.addEventListener('pageshow', (event) => {
   if (event.persisted) {
