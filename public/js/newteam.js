@@ -10,6 +10,39 @@ const userName = document.getElementById("username");
 const teamNameDisplay = document.getElementById("teamname_display");
 const authButton = document.getElementById("auth-button");
 
+
+
+
+function validatePassword(password) {
+  const minLength = 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  if (password.length < minLength) {
+    return "Password must be at least 8 characters long";
+  }
+  if (!hasUpperCase) {
+    return "Password must contain at least one uppercase letter";
+  }
+  if (!hasLowerCase) {
+    return "Password must contain at least one lowercase letter";
+  }
+  if (!hasNumbers) {
+    return "Password must contain at least one number";
+  }
+  if (!hasSpecialChar) {
+    return "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)";
+  }
+  return true;
+}
+
+
+
+
+
+
 // Handle Not Logged-In State
 function NOT_loggedin() {
   localStorage.removeItem("user");
@@ -105,12 +138,15 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 });
 
+
+
+
 // Handle form submission
 document.getElementById('teamForm').addEventListener('submit', async function (event) {
   event.preventDefault();
 
   const formData = {
-    admin: document.getElementById('admin').value,
+    admin: document.getElementById('admin').value.toLowerCase(),
     teamname: document.getElementById('teamname').value,
     shift: document.getElementById('shift').value,
     email: document.getElementById('email').value,
@@ -119,13 +155,22 @@ document.getElementById('teamForm').addEventListener('submit', async function (e
 
   const userData = JSON.parse(localStorage.getItem("user"));
 
+  // Validate password for new users
+  if (!userData || !userData.name || !userData.team || !userData.shift || !userData.role) {
+    const passwordCheck = validatePassword(formData.password);
+    if (passwordCheck !== true) {
+      alert(passwordCheck);
+      return;
+    }
+  }
+
   if (userData && userData.name && userData.team && userData.shift && userData.role) {
     // Existing user logic
     const teamShift = `${userData.team}-${userData.shift}`;
-    const [teamname] = teamShift.split('-'); // Extract teamname from team_shift
+    const [teamname] = teamShift.split('-');
     const requestData = {
       username: userData.name,
-      teamname: formData.teamname || teamname, // Use form data or existing teamname
+      teamname: formData.teamname || teamname,
       shiftname: formData.shift,
     };
 

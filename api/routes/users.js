@@ -268,9 +268,8 @@ router.get("/api/users/:username", authenticate, async (req, res) => {
 
 
 
-
 router.put("/api/users/team_shift", authenticate, async (req, res) => {
-  console.log(req.body);
+
   try {
     const db = getDB();
     const { username, team, oldShift, newShift, role, email, password } = req.body;

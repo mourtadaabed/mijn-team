@@ -58,7 +58,7 @@ if (shiftForm) {
     }
 
     const shiftname = document.getElementById("shiftname").value.trim();
-    const username = document.getElementById("username").value.trim();
+    const username = document.getElementById("username").value.trim().toLowerCase();
     const password = document.getElementById("password").value.trim();
     const email = document.getElementById("email").value.trim();
 

@@ -1,5 +1,39 @@
 const createShiftSelect = document.getElementById('createShift');
 
+
+
+
+function validatePassword(password) {
+  if (!password) return true; // Allow empty password for updates where password isn't changed
+  const minLength = 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  if (password.length < minLength) {
+    return "Password must be at least 8 characters long";
+  }
+  if (!hasUpperCase) {
+    return "Password must contain at least one uppercase letter";
+  }
+  if (!hasLowerCase) {
+    return "Password must contain at least one lowercase letter";
+  }
+  if (!hasNumbers) {
+    return "Password must contain at least one number";
+  }
+  if (!hasSpecialChar) {
+    return "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)";
+  }
+  return true;
+}
+
+
+
+
+
+
 function storedUser() {
   const storedUser = localStorage.getItem("user");
   return storedUser ? JSON.parse(storedUser) : null;
@@ -118,13 +152,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 document.getElementById('createUserForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const newUser = {
-    username: document.getElementById('createUsername').value,
+    username: document.getElementById('createUsername').value.toLowerCase(), // Convert to lowercase
     shift: document.getElementById('createShift').value,
     role: document.getElementById('createRole').value,
     email: document.getElementById('createEmail').value,
     password: document.getElementById('createPassword').value,
     teamname: document.getElementById('createTeamname')?.value || currentTeam
   };
+
+  // Validate password
+  const passwordCheck = validatePassword(newUser.password);
+  if (passwordCheck !== true) {
+    alert(passwordCheck);
+    return;
+  }
 
   try {
     const response = await fetch('/api/register', {
@@ -142,8 +183,8 @@ document.getElementById('createUserForm').addEventListener('submit', async (e) =
     displayUsers(currentTeam);
     e.target.reset();
   } catch (error) {
-    console.error('Error creating user:', error); // Full error object for debugging
-    alert('Failed to create user: ' + error.message); // Show user-friendly message
+    console.error('Error creating user:', error);
+    alert('Failed to create user: ' + error.message);
   }
 });
 
@@ -171,6 +212,9 @@ async function deleteUser(username, teamName, shift) {
   }
 }
 
+
+
+
 async function showUpdateModal(username, teamName, shift) {
   try {
     const response = await fetch(`/api/users/${username}`, {
@@ -188,7 +232,8 @@ async function showUpdateModal(username, teamName, shift) {
       throw new Error(`Team shift ${teamName}-${shift} not found for user ${username}`);
     }
 
-    document.getElementById('updateUsername').value = user.username;
+    // Ensure username is lowercase when populating the form
+    document.getElementById('updateUsername').value = user.username.toLowerCase();
     const updateShiftSelect = document.getElementById('updateShift');
     
     // Fetch team-specific shifts and populate the dropdown
@@ -208,7 +253,7 @@ async function showUpdateModal(username, teamName, shift) {
       e.preventDefault();
       const newShift = document.getElementById('updateShift').value;
       const updatedTeamShift = {
-        username,
+        username: document.getElementById('updateUsername').value.toLowerCase(), // Ensure lowercase here
         team: teamName,
         oldShift: shift, // Original shift to remove
         newShift: newShift, // New shift to add
@@ -216,6 +261,15 @@ async function showUpdateModal(username, teamName, shift) {
         email: document.getElementById('updateEmail').value,
         password: document.getElementById('updatePassword').value || undefined
       };
+
+      // Validate password if provided
+      if (updatedTeamShift.password) {
+        const passwordCheck = validatePassword(updatedTeamShift.password);
+        if (passwordCheck !== true) {
+          alert(passwordCheck);
+          return;
+        }
+      }
 
       try {
         const updateResponse = await fetch(`/api/users/team_shift`, {
@@ -230,7 +284,7 @@ async function showUpdateModal(username, teamName, shift) {
         document.getElementById('updateModal').style.display = 'none';
       } catch (error) {
         console.error('Error updating team_shift:', error);
-        console.log('Failed to update team_shift: ' + error.message);
+        alert('Failed to update team_shift: ' + error.message);
       }
     };
   } catch (error) {

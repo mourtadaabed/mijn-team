@@ -119,11 +119,11 @@ async function fetchDaysOfTeam(teamName, shiftName) {
 function populateDays(days, team_name, shift_name) {
   const datalist = document.getElementById("days");
   datalist.innerHTML = '';
-  days.forEach(day => {
+  for (let i = days.length - 1; i >= 0; i--) {
     const option = document.createElement("option");
-    option.value = day;
+    option.value = days[i];
     datalist.appendChild(option);
-  });
+  }
 }
 
 document.getElementById("dayInput").addEventListener("change", function (e) {
