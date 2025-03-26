@@ -171,9 +171,7 @@ async function deleteUser(username, teamName, shift) {
   }
 }
 
-// Update User Modal
 async function showUpdateModal(username, teamName, shift) {
-
   try {
     const response = await fetch(`/api/users/${username}`, {
       method: 'GET',
@@ -208,17 +206,18 @@ async function showUpdateModal(username, teamName, shift) {
 
     document.getElementById('updateUserForm').onsubmit = async (e) => {
       e.preventDefault();
+      const newShift = document.getElementById('updateShift').value;
       const updatedTeamShift = {
         username,
         team: teamName,
-        shift: document.getElementById('updateShift').value,
+        oldShift: shift, // Original shift to remove
+        newShift: newShift, // New shift to add
         role: document.getElementById('updateRole').value,
         email: document.getElementById('updateEmail').value,
         password: document.getElementById('updatePassword').value || undefined
       };
 
       try {
-
         const updateResponse = await fetch(`/api/users/team_shift`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -239,6 +238,8 @@ async function showUpdateModal(username, teamName, shift) {
     console.log('Failed to load user data: ' + error.message);
   }
 }
+
+
 
 // Logout Function
 async function logout() {

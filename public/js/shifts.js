@@ -93,7 +93,7 @@ async function creatnewshift(user, teamname, shiftname) {
     if (response.ok) {
       messageBox.textContent = data.message || "Shift created successfully!";
       messageBox.style.color = "green";
-      setTimeout(() => (window.location.href = "/operators"), 2000);
+      window.location.href = "/shifts";
     } else {
       messageBox.textContent = data.message || "An error occurred.";
       messageBox.style.color = "red";
@@ -133,7 +133,6 @@ async function fetchAndDisplayShifts() {
     }
 
     const data = await response.json();
-    console.log("Fetched shifts for team", teamName, ":", data.shifts);
     populateShiftsTable(data.shifts); // Assuming the backend returns { shifts: [...] }
   } catch (error) {
     console.error("Error fetching shifts:", error);
@@ -190,7 +189,6 @@ async function deleteShift(shiftname, teamname,role) {
       credentials: "include",
       body: JSON.stringify({ shiftname, teamname,role }),
     });
-
     const data = await response.json();
     const messageBox = document.getElementById("msg-login");
     if (response.ok) {
