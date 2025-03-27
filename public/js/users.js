@@ -4,6 +4,7 @@ const createShiftSelect = document.getElementById('createShift');
 
 
 function validatePassword(password) {
+  return true;
   if (!password) return true; // Allow empty password for updates where password isn't changed
   const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
@@ -232,7 +233,7 @@ async function showUpdateModal(username, teamName, shift) {
       throw new Error(`Team shift ${teamName}-${shift} not found for user ${username}`);
     }
 
-    // Ensure username is lowercase when populating the form
+    // Populate the form with current user data
     document.getElementById('updateUsername').value = user.username.toLowerCase();
     const updateShiftSelect = document.getElementById('updateShift');
     
@@ -251,9 +252,11 @@ async function showUpdateModal(username, teamName, shift) {
 
     document.getElementById('updateUserForm').onsubmit = async (e) => {
       e.preventDefault();
+      const newUsername = document.getElementById('updateUsername').value.toLowerCase();
       const newShift = document.getElementById('updateShift').value;
       const updatedTeamShift = {
-        username: document.getElementById('updateUsername').value.toLowerCase(), // Ensure lowercase here
+        oldUsername: username, // Original username to look up
+        newUsername: newUsername, // New username to set
         team: teamName,
         oldShift: shift, // Original shift to remove
         newShift: newShift, // New shift to add

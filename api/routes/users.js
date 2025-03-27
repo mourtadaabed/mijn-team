@@ -6,7 +6,7 @@ const User = require("../../modules/User");
 const authenticate = require("../middleware/auth");
 
 
-console
+
 
 router.post("/api/register", authenticate, async (req, res) => {
   try {
@@ -269,49 +269,62 @@ router.get("/api/users/:username", authenticate, async (req, res) => {
 
 
 router.put("/api/users/team_shift", authenticate, async (req, res) => {
-
   try {
     const db = getDB();
-    const { username, team, oldShift, newShift, role, email, password } = req.body;
+    const { oldUsername, newUsername, team, oldShift, newShift, role, email, password } = req.body;
 
-    if (!username || !team || !oldShift || !newShift) {
+    if (!oldUsername || !team || !oldShift || !newShift) {
       return res.status(400).json({
         success: false,
-        message: "Username, team, oldShift, and newShift are required"
+        message: "Old username, team, oldShift, and newShift are required"
       });
     }
 
     const oldTeamShift = `${team}-${oldShift}`; // Team-shift to remove
     const newTeamShift = { team_shift: `${team}-${newShift}`, role: role || 'user' }; // Team-shift to add
 
+    // Normalize usernames
+    const normalizedOldUsername = oldUsername.trim().toLowerCase();
+    const normalizedNewUsername = newUsername ? newUsername.trim().toLowerCase() : normalizedOldUsername;
+
     // Step 1: Remove the old team_shift
     const pullResult = await db.collection("users").updateOne(
-      { name: username },
+      { name: normalizedOldUsername },
       { $pull: { team_shifts: { team_shift: oldTeamShift } } }
     );
 
     if (pullResult.matchedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: `User '${username}' not found`
+        message: `User '${normalizedOldUsername}' not found`
       });
     }
 
-    // Step 2: Add the new team_shift and update other fields if provided
+    // Step 2: Prepare update fields and add the new team_shift
     const updateFields = {};
     if (email) updateFields.email = email;
     if (password) updateFields.password = await bcrypt.hash(password, 10);
+    if (newUsername && newUsername !== oldUsername) {
+      // Check if the new username is already taken
+      const existingUser = await db.collection("users").findOne({ name: normalizedNewUsername });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: `Username '${normalizedNewUsername}' is already taken`
+        });
+      }
+      updateFields.name = normalizedNewUsername;
+    }
 
     const pushResult = await db.collection("users").updateOne(
-      { name: username },
+      { name: normalizedOldUsername },
       {
         $push: { team_shifts: newTeamShift }, // Add new team_shift
-        ...(Object.keys(updateFields).length > 0 && { $set: updateFields }) // Update email/password if provided
+        ...(Object.keys(updateFields).length > 0 && { $set: updateFields }) // Update name, email, password if provided
       }
     );
 
     if (pushResult.matchedCount === 0) {
-      // This shouldn't happen since the first update succeeded, but handle it anyway
       return res.status(500).json({
         success: false,
         message: "Failed to add new team_shift after removing old one"
@@ -321,13 +334,13 @@ router.put("/api/users/team_shift", authenticate, async (req, res) => {
     if (pullResult.modifiedCount === 0 && pushResult.modifiedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: `Team shift '${oldTeamShift}' not found and '${newTeamShift.team_shift}' not added for user '${username}'`
+        message: `Team shift '${oldTeamShift}' not found and '${newTeamShift.team_shift}' not added for user '${normalizedOldUsername}'`
       });
     }
 
     res.status(200).json({
       success: true,
-      message: `Team shift updated for user '${username}'`
+      message: `Team shift and user details updated for user '${normalizedNewUsername || normalizedOldUsername}'`
     });
   } catch (error) {
     console.error("Error updating team_shift:", error);
