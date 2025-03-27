@@ -265,3 +265,16 @@ a {
   margin-top: 10px;
   margin-bottom: 10px;
 }
+@media (max-width: 768px) {
+  #maindiv {
+    grid-template-columns: 1fr; /* Stack columns vertically */
+  }
+
+  #teammembers_div,
+  #reserves_div,
+  #jobstunds_div {
+    border-left: none; /* Remove left border when stacked */
+    border-top: 1px solid black; /* Add top border for separation */
+    padding: 10px; /* Consistent padding */
+  }
+}

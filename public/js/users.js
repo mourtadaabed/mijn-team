@@ -2,6 +2,7 @@ const createShiftSelect = document.getElementById('createShift');
 const userFilter = document.getElementById('userFilter'); // New DOM element for user filter
 
 function validatePassword(password) {
+  return true;
   if (!password) return true; // Allow empty password for updates where password isn't changed
   const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
