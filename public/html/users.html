@@ -12,13 +12,13 @@
         <a href="/workstations" class="w">Workstations</a>
         <a href="/newteam" class="w" id="n-t">New Team</a>
         <a href="/contact" class="w">Contact</a>
-        <a href="/shifts" class="w admin-only" id="admin-shifts">Shift's</a> <!-- Integrated admin link -->
+        <a href="/shifts" class="w admin-only" id="admin-shifts">Shift's</a>
     </div>
     <hr>
     <div id="new_plan_button">
         <button class="big-button">New Plan</button>
         <hr>
-      </div>
+    </div>
     <div class="container">
         <h1>User Management System</h1>
         <h4 id="current_team">current_team</h4>
@@ -58,6 +58,12 @@
         <!-- Users Table Section -->
         <div class="section">
             <h2>All Users</h2>
+            <div class="filter-container">
+                <label for="userFilter">Filter by User:</label>
+                <select id="userFilter">
+                    <option value="">All Users</option>
+                </select>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>

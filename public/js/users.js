@@ -1,10 +1,7 @@
 const createShiftSelect = document.getElementById('createShift');
-
-
-
+const userFilter = document.getElementById('userFilter'); // New DOM element for user filter
 
 function validatePassword(password) {
-  return true;
   if (!password) return true; // Allow empty password for updates where password isn't changed
   const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
@@ -30,11 +27,6 @@ function validatePassword(password) {
   return true;
 }
 
-
-
-
-
-
 function storedUser() {
   const storedUser = localStorage.getItem("user");
   return storedUser ? JSON.parse(storedUser) : null;
@@ -43,6 +35,7 @@ function storedUser() {
 const userData = storedUser();
 let role = userData?.role;
 let currentTeam = userData?.team;
+let allUsers = []; // Store all users for filtering
 
 fetchTeamShifts(currentTeam);
 
@@ -77,7 +70,7 @@ function populateShiftDropdown(selectElement, shifts, selectedShift) {
   });
 }
 
-async function displayUsers(teamName) {
+async function fetchAndDisplayUsers(teamName) {
   try {
     if (!teamName) {
       throw new Error("Team name is required");
@@ -92,29 +85,62 @@ async function displayUsers(teamName) {
     const data = await response.json();
     if (!data.success) throw new Error(data.message);
 
-    const tableBody = document.getElementById('usersTable');
-    tableBody.innerHTML = '';
-    data.users.forEach((user, index) => {
-      const row = `
-        <tr>
-          <td>${user.username}</td>
-          <td>${user.shift || 'N/A'}</td>
-          <td>${user.role || 'N/A'}</td>
-          <td>${user.email}</td>
-          <td class="action-buttons">
-            <button onclick="showUpdateModal('${user.username}', '${teamName}', '${user.shift}')">Update</button>
-            <button class="delete-btn" onclick="deleteUser('${user.username}', '${teamName}', '${user.shift}')">Delete</button>
-          </td>
-        </tr>
-      `;
-      tableBody.innerHTML += row;
-    });
-    
-    showAdminFeatures(role);
+    allUsers = data.users; // Store all users for filtering
+    populateUserFilter(allUsers); // Populate user dropdown
+    filterAndDisplayUsers(); // Display filtered users
   } catch (error) {
     console.error('Error fetching users:', error);
-    console.log('Failed to load users: ' + error.message);
+    document.getElementById('usersTable').innerHTML = '<tr><td colspan="5">Failed to load users: ' + error.message + '</td></tr>';
   }
+}
+
+// Populate user filter dropdown
+function populateUserFilter(users) {
+  const uniqueUsers = [...new Set(users.map(user => user.username))]; // Get unique usernames
+  userFilter.innerHTML = '<option value="">All Users</option>'; // Reset dropdown
+  uniqueUsers.forEach(username => {
+    const option = document.createElement('option');
+    option.value = username;
+    option.textContent = username;
+    userFilter.appendChild(option);
+  });
+}
+
+// Filter and display users based on dropdown selection
+function filterAndDisplayUsers() {
+  const selectedUser = userFilter.value;
+  const filteredUsers = selectedUser 
+    ? allUsers.filter(user => user.username === selectedUser) 
+    : allUsers;
+  displayUsersTable(filteredUsers);
+}
+
+// Display users in table
+function displayUsersTable(users) {
+  const tableBody = document.getElementById('usersTable');
+  tableBody.innerHTML = '';
+  if (!users || users.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="5">No users available</td></tr>';
+    return;
+  }
+
+  users.forEach((user) => {
+    const row = `
+      <tr>
+        <td>${user.username}</td>
+        <td>${user.shift || 'N/A'}</td>
+        <td>${user.role || 'N/A'}</td>
+        <td>${user.email}</td>
+        <td class="action-buttons">
+          <button onclick="showUpdateModal('${user.username}', '${currentTeam}', '${user.shift}')">Update</button>
+          <button class="delete-btn" onclick="deleteUser('${user.username}', '${currentTeam}', '${user.shift}')">Delete</button>
+        </td>
+      </tr>
+    `;
+    tableBody.innerHTML += row;
+  });
+  
+  showAdminFeatures(role);
 }
 
 // Show Admin Features
@@ -135,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (currentTeam) {
     const shifts = await fetchTeamShifts(currentTeam);
     if (shifts) populateShiftDropdown(createShiftSelect, shifts, userData?.shift);
-    await displayUsers(currentTeam);
+    await fetchAndDisplayUsers(currentTeam);
   }
 
   if (userData) {
@@ -148,12 +174,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-
-
 document.getElementById('createUserForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const newUser = {
-    username: document.getElementById('createUsername').value.toLowerCase(), // Convert to lowercase
+    username: document.getElementById('createUsername').value.toLowerCase(),
     shift: document.getElementById('createShift').value,
     role: document.getElementById('createRole').value,
     email: document.getElementById('createEmail').value,
@@ -161,7 +185,6 @@ document.getElementById('createUserForm').addEventListener('submit', async (e) =
     teamname: document.getElementById('createTeamname')?.value || currentTeam
   };
 
-  // Validate password
   const passwordCheck = validatePassword(newUser.password);
   if (passwordCheck !== true) {
     alert(passwordCheck);
@@ -181,16 +204,13 @@ document.getElementById('createUserForm').addEventListener('submit', async (e) =
       throw new Error(data.message || 'Unknown error occurred');
     }
 
-    displayUsers(currentTeam);
+    fetchAndDisplayUsers(currentTeam);
     e.target.reset();
   } catch (error) {
     console.error('Error creating user:', error);
     alert('Failed to create user: ' + error.message);
   }
 });
-
-
-
 
 // Delete a specific team_shift from a user's team_shifts array
 async function deleteUser(username, teamName, shift) {
@@ -206,15 +226,12 @@ async function deleteUser(username, teamName, shift) {
     const data = await response.json();
     if (!data.success) throw new Error(data.message);
     
-    displayUsers(teamName);
+    fetchAndDisplayUsers(teamName);
   } catch (error) {
     console.error('Error deleting team_shift:', error);
-    console.log('Failed to delete team_shift: ' + error.message);
+    alert('Failed to delete team_shift: ' + error.message);
   }
 }
-
-
-
 
 async function showUpdateModal(username, teamName, shift) {
   try {
@@ -233,11 +250,9 @@ async function showUpdateModal(username, teamName, shift) {
       throw new Error(`Team shift ${teamName}-${shift} not found for user ${username}`);
     }
 
-    // Populate the form with current user data
     document.getElementById('updateUsername').value = user.username.toLowerCase();
     const updateShiftSelect = document.getElementById('updateShift');
     
-    // Fetch team-specific shifts and populate the dropdown
     const teamShifts = await fetchTeamShifts(teamName);
     if (teamShifts && teamShifts.length > 0) {
       populateShiftDropdown(updateShiftSelect, teamShifts, shift);
@@ -255,17 +270,16 @@ async function showUpdateModal(username, teamName, shift) {
       const newUsername = document.getElementById('updateUsername').value.toLowerCase();
       const newShift = document.getElementById('updateShift').value;
       const updatedTeamShift = {
-        oldUsername: username, // Original username to look up
-        newUsername: newUsername, // New username to set
+        oldUsername: username,
+        newUsername: newUsername,
         team: teamName,
-        oldShift: shift, // Original shift to remove
-        newShift: newShift, // New shift to add
+        oldShift: shift,
+        newShift: newShift,
         role: document.getElementById('updateRole').value,
         email: document.getElementById('updateEmail').value,
         password: document.getElementById('updatePassword').value || undefined
       };
 
-      // Validate password if provided
       if (updatedTeamShift.password) {
         const passwordCheck = validatePassword(updatedTeamShift.password);
         if (passwordCheck !== true) {
@@ -283,7 +297,7 @@ async function showUpdateModal(username, teamName, shift) {
         });
         const updateData = await updateResponse.json();
         if (!updateData.success) throw new Error(updateData.message);
-        displayUsers(teamName);
+        fetchAndDisplayUsers(teamName);
         document.getElementById('updateModal').style.display = 'none';
       } catch (error) {
         console.error('Error updating team_shift:', error);
@@ -292,11 +306,9 @@ async function showUpdateModal(username, teamName, shift) {
     };
   } catch (error) {
     console.error('Error fetching user for update:', error);
-    console.log('Failed to load user data: ' + error.message);
+    alert('Failed to load user data: ' + error.message);
   }
 }
-
-
 
 // Logout Function
 async function logout() {
@@ -327,7 +339,6 @@ if (newPlanButton) {
   });
 }
 
-// Cancel Update
 document.getElementById('cancelUpdate').addEventListener('click', () => {
   document.getElementById('updateModal').style.display = 'none';
 });
@@ -336,3 +347,6 @@ const current_team = document.getElementById("current_team");
 if (current_team) {
   current_team.innerHTML = "Team : " + (storedUser()?.team || "N/A");
 }
+
+// Add event listener for user filter
+userFilter.addEventListener("change", filterAndDisplayUsers);

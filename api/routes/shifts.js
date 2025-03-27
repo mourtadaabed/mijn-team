@@ -1,4 +1,3 @@
-// shifts.js (backend router)
 const express = require("express");
 const router = express.Router();
 const { getDB } = require("../utils/db"); // Assumes a utility to get MongoDB connection
@@ -8,9 +7,7 @@ const authenticate = require("../middleware/auth"); // Authentication middleware
 // POST /newShift - Create a new shift
 router.post("/newShift", authenticate, async (req, res) => {
     try {
-
         const { usrname, team, newshift } = req.body;
-        // Validate all required fields from the request body
         if (!usrname || !team || !newshift) {
             return res.status(400).json({ success: false, message: "All fields (usrname, team, newshift) are required" });
         }
@@ -26,7 +23,7 @@ router.post("/newShift", authenticate, async (req, res) => {
         // Check if shift already exists
         const shiftExists = existingTeam.shifts.some((shift) => shift.name === newshift);
         if (shiftExists) {
-            return res.status(400).json({ success: false, message: `Shift '${newshift}' already exists for team '${currentTeam}'` });
+            return res.status(400).json({ success: false, message: `Shift '${newshift}' already exists for team '${team}'` });
         }
 
         // Create and add new shift
@@ -56,7 +53,8 @@ router.post("/newShift", authenticate, async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 });
-// GET /shifts_of_team - Fetch all shifts for a team
+
+// GET /shifts_of_team - Fetch all shifts for a team, repeated per user
 router.get("/shifts_of_team", authenticate, async (req, res) => {
     try {
         const { teamname } = req.query;
@@ -71,23 +69,35 @@ router.get("/shifts_of_team", authenticate, async (req, res) => {
         }
 
         const db = getDB();
-        const teams = await db.collection("teams").find({ teamName: teamname }).toArray();
+        const team = await db.collection("teams").findOne({ teamName: teamname });
 
-        if (!teams || teams.length === 0) {
-            return res.status(404).json({ success: false, message: "No teams found" });
+        if (!team) {
+            return res.status(404).json({ success: false, message: "No team found" });
         }
 
         const shifts = [];
-        for (const team of teams) {
-            for (const shift of team.shifts) {
-                const user = await db.collection("users").findOne({
-                    team_shifts: { $elemMatch: { team_shift: `${team.teamName}-${shift.name}` } },
-                });
+        for (const shift of team.shifts) {
+            const teamShift = `${team.teamName}-${shift.name}`;
+            const users = await db.collection("users").find({
+                "team_shifts.team_shift": teamShift
+            }).toArray();
+
+            if (users.length === 0) {
                 shifts.push({
                     shiftname: shift.name,
                     teamname: team.teamName,
-                    username: user ? user.name : "N/A",
-                    role: user ? user.team_shifts.find(ts => ts.team_shift === `${team.teamName}-${shift.name}`).role : "N/A",
+                    username: "N/A",
+                    role: "N/A"
+                });
+            } else {
+                users.forEach(user => {
+                    const userTeamShift = user.team_shifts.find(ts => ts.team_shift === teamShift);
+                    shifts.push({
+                        shiftname: shift.name,
+                        teamname: team.teamName,
+                        username: user.name,
+                        role: userTeamShift ? userTeamShift.role : "N/A"
+                    });
                 });
             }
         }
@@ -155,6 +165,112 @@ router.post("/deleteShift", authenticate, async (req, res) => {
         });
     } catch (error) {
         console.error("Error deleting shift:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+// POST /updateShift - Update a shift with new name and assign a user with a role (preserve old assignments)
+router.post("/updateShift", authenticate, async (req, res) => {
+    try {
+        const { oldShiftName, teamname, newShiftName, newUsername, newRole } = req.body;
+        const user = req.user;
+
+        if (!oldShiftName || !teamname || !newShiftName) {
+            return res.status(400).json({ success: false, message: "Old shift name, team name, and new shift name are required" });
+        }
+
+        if (!newUsername || !newRole) {
+            return res.status(400).json({ success: false, message: "New username and role are required" });
+        }
+
+        const db = getDB();
+
+        // Check if team exists
+        const team = await db.collection("teams").findOne({ teamName: teamname });
+        if (!team) {
+            return res.status(404).json({ success: false, message: "Team not found" });
+        }
+
+        // Check if old shift exists
+        const shiftExists = team.shifts.some((shift) => shift.name === oldShiftName);
+        if (!shiftExists) {
+            return res.status(404).json({ success: false, message: "Shift not found" });
+        }
+
+        // Check if new shift name already exists (and isn’t just the old name)
+        if (oldShiftName !== newShiftName) {
+            const newShiftNameExists = team.shifts.some((shift) => shift.name === newShiftName);
+            if (newShiftNameExists) {
+                return res.status(400).json({ success: false, message: `Shift '${newShiftName}' already exists for team '${teamname}'` });
+            }
+
+            // Update shift name in teams collection
+            await db.collection("teams").updateOne(
+                { teamName: teamname, "shifts.name": oldShiftName },
+                { $set: { "shifts.$.name": newShiftName } }
+            );
+
+            // Update all existing user assignments to reflect the new shift name
+            const oldTeamShift = `${teamname}-${oldShiftName}`;
+            const newTeamShift = `${teamname}-${newShiftName}`;
+            await db.collection("users").updateMany(
+                { "team_shifts.team_shift": oldTeamShift },
+                { $set: { "team_shifts.$.team_shift": newTeamShift } }
+            );
+        }
+
+        // Assign or update the new user with the specified role
+        const newTeamShift = `${teamname}-${newShiftName}`;
+        const userDoc = await db.collection("users").findOne({ name: newUsername });
+
+        if (userDoc && userDoc.team_shifts.some(ts => ts.team_shift === newTeamShift)) {
+            // If the user already has this shift, update the role
+            await db.collection("users").updateOne(
+                { name: newUsername, "team_shifts.team_shift": newTeamShift },
+                { $set: { "team_shifts.$.role": newRole } }
+            );
+        } else {
+            // If the user doesn't have this shift, add it
+            await db.collection("users").updateOne(
+                { name: newUsername },
+                { 
+                    $push: { team_shifts: { team_shift: newTeamShift, role: newRole } },
+                    $setOnInsert: { name: newUsername }
+                },
+                { upsert: true }
+            );
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Shift updated and user assigned successfully"
+        });
+    } catch (error) {
+        console.error("Error updating shift:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+// GET /team_users - Fetch all users in a team
+router.get("/team_users", authenticate, async (req, res) => {
+    try {
+        const { teamname } = req.query;
+        if (!teamname) {
+            return res.status(400).json({ success: false, message: "Team name is required" });
+        }
+
+        const db = getDB();
+        const users = await db.collection("users").find({
+            "team_shifts.team_shift": { $regex: new RegExp(`^${teamname}-`) }
+        }).toArray();
+
+        const userList = users.map(user => ({
+            name: user.name
+        }));
+
+        res.status(200).json({ success: true, users: userList });
+    } catch (error) {
+        console.error("Error fetching team users:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 });
