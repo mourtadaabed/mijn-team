@@ -109,7 +109,6 @@ router.get("/shifts_of_team", authenticate, async (req, res) => {
     }
 });
 
-// POST /deleteShift - Delete a shift
 router.post("/deleteShift", authenticate, async (req, res) => {
     try {
         const { shiftname, teamname } = req.body;
@@ -153,15 +152,27 @@ router.post("/deleteShift", authenticate, async (req, res) => {
             );
         }
 
+        // Check if team has no shifts remaining and delete it
+        const updatedTeam = await db.collection("teams").findOne({ teamName: teamname });
+        let teamDeleted = false;
+        if (updatedTeam.shifts.length === 0) {
+            await db.collection("teams").deleteOne({ teamName: teamname });
+            teamDeleted = true;
+        }
+
         let message = "Shift deleted successfully";
         if (usersWithEmptyShifts.length > 0) {
             message += ` and ${usersWithEmptyShifts.length} user(s) with no remaining shifts were also deleted`;
+        }
+        if (teamDeleted) {
+            message += " and the team was deleted as it had no remaining shifts";
         }
 
         res.status(200).json({ 
             success: true, 
             message,
-            deletedUsersCount: usersWithEmptyShifts.length
+            deletedUsersCount: usersWithEmptyShifts.length,
+            teamDeleted: teamDeleted
         });
     } catch (error) {
         console.error("Error deleting shift:", error);
@@ -244,6 +255,7 @@ router.post("/updateShift", authenticate, async (req, res) => {
         res.status(200).json({ 
             success: true, 
             message: "Shift updated and user assigned successfully"
+
         });
     } catch (error) {
         console.error("Error updating shift:", error);
