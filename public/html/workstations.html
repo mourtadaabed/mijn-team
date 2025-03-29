@@ -33,7 +33,7 @@
 
     <div id="new-station">
       <HR>
-      <h3>Add New station Or Edit exist one </h3>
+      <h3>Add New Workstation</h3>
       <form action="" id="edit_form">
         <label for="station_number">Station Number:</label>
         <input type="number" id="station_number" name="station_number" value="" required>
@@ -44,7 +44,7 @@
         <input type="number" id="requiredOperators" name="requiredOperators" value="" required><br>
         <label for="description">Description:</label><br>
         <textarea id="description" name="description" rows="4" cols="50"></textarea><br>
-        <input type="submit" value="add/edit">
+        <input type="submit" value="Add New Station">
       </form>
     </div>
 
@@ -53,6 +53,26 @@
       <input type="button" id="logout" onclick="logout()" value="uitlogen">
     </div>
 
+
+    <!-- Modal for updating/deleting station -->
+<div id="stationModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Update Station</h2>
+    <form id="updateForm">
+      <label for="modal_station_number">Station Number:</label>
+      <input type="number" id="modal_station_number" name="modal_station_number" readonly><br>
+      <label for="modal_station_name">Station Name:</label>
+      <input type="text" id="modal_station_name" name="modal_station_name" required><br>
+      <label for="modal_requiredOperators">Required Operators:</label>
+      <input type="number" id="modal_requiredOperators" name="modal_requiredOperators" required><br>
+      <label for="modal_description">Description:</label><br>
+      <textarea id="modal_description" name="modal_description" rows="4" cols="50"></textarea><br>
+      <input type="submit" value="Update Station">
+      <button type="button" id="deleteStationBtn">Delete Station</button>
+    </form>
+  </div>
+</div>
     <script type="module" src="js/workstations.js"></script>
   </body>
 </html>

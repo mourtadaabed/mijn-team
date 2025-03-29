@@ -77,11 +77,63 @@ function drawtable(stations) {
     cell4.innerHTML = station.requiredOperators;
     
     cell1.className = "d_en_v";
-    cell1.onmouseenter = () => cell1.innerHTML = "Delete ?";
+    cell1.onmouseenter = () => cell1.innerHTML = "Update?";
     cell1.onmouseleave = () => cell1.innerHTML = station.station_number;
-    cell1.onclick = () => deleteStation(station.station_number, storedUser().team);
+    cell1.onclick = () => showUpdateModal(station);
   });
 }
+
+// Add modal handling functions
+function showUpdateModal(station) {
+  const modal = document.getElementById("stationModal");
+  const closeBtn = modal.querySelector(".close");
+  const updateForm = document.getElementById("updateForm");
+  
+  // Fill form with current station data
+  document.getElementById("modal_station_number").value = station.station_number;
+  document.getElementById("modal_station_name").value = station.station_name;
+  document.getElementById("modal_requiredOperators").value = station.requiredOperators;
+  document.getElementById("modal_description").value = station.description || "";
+  
+  modal.style.display = "block";
+  
+  // Close modal when clicking X
+  closeBtn.onclick = () => {
+    modal.style.display = "none";
+  };
+  
+  // Close modal when clicking outside
+  window.onclick = (event) => {
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  };
+  
+  // Handle update form submission
+  updateForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(updateForm);
+    const station_number = formData.get("modal_station_number");
+    const station_name = formData.get("modal_station_name");
+    const requiredOperators = formData.get("modal_requiredOperators");
+    const description = formData.get("modal_description");
+    const teamName = storedUser().team;
+    
+    const result = await update_station_in_db(station_number, station_name, requiredOperators, description, teamName);
+    if (result.success) {
+      modal.style.display = "none";
+    }
+  };
+  
+  // Handle delete button
+  document.getElementById("deleteStationBtn").onclick = async () => {
+    const station_number = document.getElementById("modal_station_number").value;
+    const teamName = storedUser().team;
+    await deleteStation(station_number, teamName);
+    modal.style.display = "none";
+  };
+}
+
 
 // Fetch Stations
 async function fetchStations(team_n) {
@@ -136,12 +188,16 @@ async function getData(form) {
 
   const newStation = new Station(station_number, station_name, requiredOperators, description);
 
-  if (!(await isexist_in_db(station_number, teamName))) {
-    await create_new_station(newStation, teamName);
-  } else if (confirm("The station already exists. Do you want to update it?")) {
-    const updateResult = await update_station_in_db(station_number, station_name, requiredOperators, description, teamName);
-    if (!updateResult.success) alert('Failed to update station.');
+  // Check if station exists
+  if (await isexist_in_db(station_number, teamName)) {
+    alert(`Station ${station_number} already exists! Please use a different station number.`);
+    form.reset(); // Reset the form
+    return;
   }
+
+  // If it doesn't exist, create new station
+  await create_new_station(newStation, teamName);
+  form.reset(); // Reset form after successful creation
 }
 
 // Check Station Existence
@@ -161,7 +217,7 @@ async function isexist_in_db(station_number, teamName) {
   }
 }
 
-// Create New Station
+// Create New Station (no changes needed here, but keeping it for reference)
 async function create_new_station(newStation, teamName) {
   try {
     const response = await fetch('/create-station', {
@@ -198,9 +254,10 @@ async function update_station_in_db(station_number, station_name, requiredOperat
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
     const data = await response.json();
     drawtable(data.stations);
-    return data;
+    return { success: true, stations: data.stations };
   } catch (error) {
     console.error('Error updating station:', error);
+    alert('Failed to update station');
     return { success: false, message: 'Failed to update station' };
   }
 }
