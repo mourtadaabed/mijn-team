@@ -119,8 +119,20 @@ async function logout() {
 // Form Submission Handler
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  await getData(e.target);
+  const formData = new FormData(e.target);
+  const { number, name, rol } = Object.fromEntries(formData);
+  const newOperator = new Operator(name, number, rol);
+
+  const result = await isexist_in_db(newOperator.number, team_name, shift_name);
+  if (!result.exists) {
+      await create_new_operator(newOperator, team_name, shift_name);
+      form.reset();
+  } else {
+      alert(`Operator number ${number} already exists!`);
+      form.reset();
+  }
 });
+
 
 async function getData(form) {
   const formData = new FormData(form);
@@ -271,29 +283,18 @@ function drawtable(operatorslist = operators) {
   clear();
   const row1 = table.insertRow(1);
   stations.forEach((station, ix) => {
-    row1.insertCell(ix).innerHTML = station.station_name;
+      row1.insertCell(ix).innerHTML = station.station_name;
   });
 
   operatorslist.forEach((operator, i) => {
-    const row = table.insertRow(i + 2);
-    const cell0 = row.insertCell(0);
-    cell0.innerHTML = operator.name;
-    cell0.className = "cell";
-    cell0.title = `Click to remove operator\nName: ${operator.name} Number: ${operator.number} Rol: ${operator.rol}`;
-    cell0.onmouseenter = () => cell0.innerHTML = "Delete ?";
-    cell0.onmouseleave = () => cell0.innerHTML = operator.name;
-    cell0.onclick = async () => {
-      if (confirm(`Are you sure you want to delete: ${operator.name}? number: ${operator.number}`)) {
-        try {
-          const updatedOperators = await deleteOperator(operator.number, team_name, shift_name);
-          operators = updatedOperators;
-          drawtable(updatedOperators);
-        } catch (error) {
-          console.error('Deletion failed:', error);
-          alert('Failed to delete operator: ' + error.message);
-        }
-      }
-    };
+      const row = table.insertRow(i + 2);
+      const cell0 = row.insertCell(0);
+      cell0.innerHTML = operator.name;
+      cell0.className = "cell";
+      cell0.title = `Click to update operator\nName: ${operator.name} Number: ${operator.number} Rol: ${operator.rol}`;
+      cell0.onmouseenter = () => cell0.innerHTML = "Update?";
+      cell0.onmouseleave = () => cell0.innerHTML = operator.name;
+      cell0.onclick = () => showUpdateModal(operator);
 
     stations.forEach((station, index) => {
       const cell = row.insertCell(index + 1);
@@ -319,7 +320,62 @@ function drawtable(operatorslist = operators) {
     });
   });
 }
+function showUpdateModal(operator) {
+  const modal = document.getElementById("operatorModal");
+  const closeBtn = modal.querySelector(".close");
+  const form = document.getElementById("updateOperatorForm");
+  const deleteBtn = document.getElementById("deleteOperatorBtn");
 
+  // Fill form with operator data
+  document.getElementById("modalNumber").value = operator.number;
+  document.getElementById("modalName").value = operator.name;
+  document.getElementById("modalRol").value = operator.rol;
+
+  modal.style.display = "block";
+
+  // Close modal when clicking the X
+  closeBtn.onclick = () => {
+      modal.style.display = "none";
+  };
+
+  // Close modal when clicking outside
+  window.onclick = (event) => {
+      if (event.target === modal) {
+          modal.style.display = "none";
+      }
+  };
+
+  // Handle form submission
+  form.onsubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const name = formData.get("name").trim();
+      const rol = formData.get("rol");
+      
+      if (!name) {
+          alert("Name cannot be empty");
+          return;
+      }
+
+      await getData2(form, operator.number);
+      modal.style.display = "none";
+  };
+
+  // Handle delete button
+  deleteBtn.onclick = async () => {
+      if (confirm(`Are you sure you want to delete: ${operator.name}? number: ${operator.number}`)) {
+          try {
+              const updatedOperators = await deleteOperator(operator.number, team_name, shift_name);
+              operators = updatedOperators;
+              drawtable(updatedOperators);
+              modal.style.display = "none";
+          } catch (error) {
+              console.error('Deletion failed:', error);
+              alert('Failed to delete operator: ' + error.message);
+          }
+      }
+  };
+}
 async function add_station_to_operator(stationNumber, operatorNumber, team, shift) {
   try {
     const response = await fetch('/add-station-to-operator', {

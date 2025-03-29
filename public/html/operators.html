@@ -38,14 +38,14 @@
         </table>
 
         <div id="addingoperator_div">
-            <h3>Adding Or Editing Operator</h3>
+            <h3>Create New Operator</h3>
             <hr>
             <form id="newoperator">
                 <label for="number">Number</label>
                 <input id="number" name="number" type="number">
                 <label for="name">Name</label>
                 <input id="name" name="name" type="text">
-                <label for="rol">Rol</label>
+                <label for="rol">Role</label>
                 <select name="rol" id="rol">
                     <option value="teammember">Teammember</option>
                     <option value="reserve">Reserve</option>
@@ -62,7 +62,7 @@
                 <p id="oldname_p"><span id="oldname_s"></span><span id="oldrol_s"></span><span id="oldnumber_s"></span></p>
                 <label for="newname">New Name</label>
                 <input id="newname" name="name" type="text">
-                <label for="newrol">Rol</label>
+                <label for="newrol">Role</label>
                 <select name="rol" id="newrol">
                     <option value="teammember">Teammember</option>
                     <option value="reserve">Reserve</option>
@@ -72,6 +72,41 @@
                 <input type="submit" value="Update">
             </form>
         </div>
+
+
+        
+        <div id="operatorModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">×</span>
+                <h3>Update Operator</h3>
+                <form id="updateOperatorForm" class="column-form">
+                    <div class="form-field">
+                        <label for="modalNumber">Number</label>
+                        <input id="modalNumber" name="number" type="number" disabled>
+                    </div>
+                    <div class="form-field">
+                        <label for="modalName">Name</label>
+                        <input id="modalName" name="name" type="text">
+                    </div>
+                    <div class="form-field">
+                        <label for="modalRol">Role</label>
+                        <select name="rol" id="modalRol">
+                            <option value="teammember">Teammember</option>
+                            <option value="reserve">Reserve</option>
+                            <option value="jobstudent">Jobstudent</option>
+                        </select>
+                    </div>
+                    <div class="form-buttons">
+                        <input type="submit" value="Update">
+                        <button type="button" id="deleteOperatorBtn">Delete Operator</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+
+
         <hr>
         <div id="user_team">Welkom: <span id="username"></span>, Your Team is: <span id="teamname"></span></div>
         <div class="log">
