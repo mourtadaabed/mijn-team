@@ -153,41 +153,7 @@ td, th {
   margin-top: 2%;
 }
 
-@media print {
-  .team_naam, .date {
-    font-size: 30px;
-  }
-  
-  .menu, .print, .log {
-    display: none;
-  }
-  
-  #andere_dag_bekijken, #lh {
-    display: none;
-  }
-  
-  #divextra {
-    width: 100%;
-    display: none;
-  }
-  
-  #maintable {
-    width: 100%;
-    border: 1px solid #ddd;
-  }
-  
-  #maintable td, th {
-    border: 1px solid black;
-    text-align: left;
-    font-size: 25px;
-    padding: 8px;
-  }
-  
-  #maintable tr:nth-child(even) {
-    text-align: right;
-    background-color: green;
-  }
-}
+
 
 /* Remove underline from all links */
 .menu, .log {
@@ -414,4 +380,40 @@ hr {
 
 .big-button:active {
   background-color: #333366;
+}
+
+@media print {
+  .team_naam, .date {
+    font-size: 30px;
+  }
+  
+  .menu, .print, .log {
+    display: none;
+  }
+  
+  #andere_dag_bekijken, #lh {
+    display: none;
+  }
+  
+  #divextra {
+    width: 100%;
+    display: none;
+  }
+  
+  #maintable {
+    width: 100%;
+    border: 1px solid #ddd;
+  }
+  
+  #maintable td, th {
+    border: 1px solid black;
+    text-align: left;
+    font-size: 25px;
+    padding: 8px;
+  }
+  
+  #maintable tr:nth-child(even) {
+    text-align: right;
+    background-color: green;
+  }
 }
